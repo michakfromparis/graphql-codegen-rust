@@ -4,18 +4,18 @@ Welcome to GraphQL Rust Codegen! This guide will get you up and running with gen
 
 ## 📦 Installation
 
-### From Source (Recommended)
+### From Crates.io (Recommended)
+
+```bash
+cargo install graphql-codegen-rust
+```
+
+### From Source
 
 ```bash
 git clone https://github.com/michakfromparis/graphql-codegen-rust.git
 cd graphql-codegen-rust
 cargo build --release
-```
-
-### From Crates.io (Future Release)
-
-```bash
-cargo install graphql-codegen-rust
 ```
 
 ## 🎯 Quick Start
