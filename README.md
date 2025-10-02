@@ -2,6 +2,14 @@
 
 **The missing piece for offline-first applications** 🚀
 
+[![CI](https://github.com/michakfromparis/graphql-codegen-rust/actions/workflows/ci.yml/badge.svg)](https://github.com/michakfromparis/graphql-codegen-rust/actions)
+[![Crates.io](https://img.shields.io/crates/v/graphql-codegen-rust.svg)](https://crates.io/crates/graphql-codegen-rust)
+[![Docs.rs](https://docs.rs/graphql-codegen-rust/badge.svg)](https://docs.rs/graphql-codegen-rust)
+
+[![Rust](https://img.shields.io/badge/rust-1.86%2B-orange)](https://www.rust-lang.org)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/michakfromparis/graphql-codegen-rust/blob/main/LICENSE)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](https://github.com/michakfromparis/graphql-codegen-rust/blob/main/docs/contributing.md)
+
 A powerful Rust CLI tool that transforms GraphQL schemas into production-ready database code. Built specifically for developers creating offline-first applications with Tauri, it bridges the gap between GraphQL APIs and local data persistence.
 
 ## 🚀 Quick Start
