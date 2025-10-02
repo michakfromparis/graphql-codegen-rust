@@ -192,27 +192,43 @@ fn main() {
 
 ## Development
 
-### Building
+### Quick Start
+
+Use the provided Makefile for common development tasks:
 
 ```bash
+# Full development workflow (recommended)
+make dev
+
+# Or run individual tasks
+make test      # Run tests
+make lint      # Run clippy
+make fmt       # Format code
+make doc       # Build docs
+```
+
+### Available Commands
+
+See all available commands:
+```bash
+make help
+```
+
+### Manual Commands
+
+If you prefer running cargo directly:
+
+```bash
+# Building
 cargo build
-```
 
-### Testing
-
-```bash
+# Testing
 cargo test
-```
 
-### Running
-
-```bash
+# Running
 cargo run -- init --url http://localhost:4000/graphql
-```
 
-### With YAML Support
-
-```bash
+# With YAML support
 cargo run --features yaml-codegen-config -- init --url http://localhost:4000/graphql
 ```
 
@@ -249,12 +265,20 @@ cargo llvm-cov --all-features --workspace
 
 ### Publishing a New Release
 
-1. Update version in `Cargo.toml`
-2. Update `CHANGELOG.md`
-3. Commit changes
-4. Create and push a version tag:
+Use the Makefile for streamlined release management:
 
 ```bash
+# Prepare for release (run all checks)
+make release-prep
+
+# Bump version automatically (requires cargo-bump)
+make version-patch  # or version-minor / version-major
+
+# Or manual process:
+# 1. Update version in Cargo.toml
+# 2. Update CHANGELOG.md
+# 3. Commit changes
+# 4. Create and push version tag:
 git tag v1.0.0
 git push origin v1.0.0
 ```
@@ -264,6 +288,16 @@ The release workflow will automatically:
 - Build and verify package
 - Publish to crates.io
 - Create GitHub release
+
+### Available Release Commands
+
+```bash
+make release-prep    # Prepare for release (all checks)
+make release-check   # Validate release package
+make version-patch   # Bump patch version (1.0.0 -> 1.0.1)
+make version-minor   # Bump minor version (1.0.0 -> 1.1.0)
+make version-major   # Bump major version (1.0.0 -> 2.0.0)
+```
 
 ## Limitations
 
