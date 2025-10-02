@@ -14,7 +14,9 @@ A Rust CLI tool that generates ORM code from GraphQL schemas. Perfect for offlin
 - **Type Safety**: Generates strongly-typed Rust structs from GraphQL schemas
 - **Tauri Integration**: Designed for seamless integration with Tauri app build processes
 
-## Comparison to Cynic
+## Comparison to Similar Tools
+
+### vs Cynic (Rust GraphQL Client)
 
 | Feature | graphql-rust-codegen | cynic |
 |---------|---------------------|-------|
@@ -22,14 +24,39 @@ A Rust CLI tool that generates ORM code from GraphQL schemas. Perfect for offlin
 | **Output** | Diesel/Sea-ORM entities, migrations | Query builders, response types |
 | **Use Case** | Offline-first apps, data persistence | API clients, GraphQL queries |
 | **Architecture** | Database-first | Client-first |
-| **Schema Source** | GraphQL schemas (introspection/SDL) | GraphQL schemas |
 | **Runtime Dependencies** | ORM libraries (Diesel/Sea-ORM) | HTTP client + cynic runtime |
-| **Tauri Integration** | Native support | Possible but not primary |
 | **Migration Support** | ✅ Automatic SQL migrations | ❌ N/A |
 | **Relationship Mapping** | ✅ Foreign keys, joins | ❌ N/A |
-| **Database Types** | ✅ SQLite, PostgreSQL, MySQL | ❌ N/A |
 
 **TL;DR**: cynic generates *client code* for making GraphQL requests, while graphql-rust-codegen generates *database code* for persisting GraphQL data locally.
+
+### vs GraphQL Code Generator (JavaScript/TypeScript)
+
+| Feature | graphql-rust-codegen | GraphQL Code Generator |
+|---------|---------------------|----------------------|
+| **Language** | Rust | JavaScript/TypeScript |
+| **Output** | Database ORM code | Client types, React hooks |
+| **Database Integration** | ✅ Native ORM support | ❌ No database code |
+| **Offline Capability** | ✅ Built for offline-first | ❌ Requires network |
+| **Build Tool Integration** | Cargo | Webpack, Vite, etc. |
+| **Migration Generation** | ✅ Automatic SQL migrations | ❌ N/A |
+| **Tauri Support** | ✅ Native | ⚠️ Requires adapters |
+
+**TL;DR**: GraphQL Code Generator focuses on frontend API consumption, while graphql-rust-codegen enables local data persistence and offline functionality.
+
+### vs Hasura (GraphQL Engine)
+
+| Feature | graphql-rust-codegen | Hasura |
+|---------|---------------------|--------|
+| **Architecture** | Code generation tool | GraphQL server + database |
+| **Database Schema** | Generated from GraphQL schemas | GraphQL API auto-generated |
+| **Deployment** | Build-time codegen | Runtime server |
+| **ORM Integration** | ✅ Multiple ORMs (Diesel/Sea-ORM) | ❌ No ORM code generation |
+| **Offline Support** | ✅ Local database persistence | ❌ Requires network |
+| **Customization** | Full code control | Limited customization |
+| **Performance** | Native compiled Rust | Node.js runtime |
+
+**TL;DR**: Hasura provides a GraphQL API over databases, while graphql-rust-codegen generates local database code that can sync with any GraphQL API.
 
 ## Installation
 
