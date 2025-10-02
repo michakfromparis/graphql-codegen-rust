@@ -15,7 +15,9 @@ license = "MIT"
 exclude = [
     ".github/",
     "tests/",
-    "*.md"
+    "README.md",
+    "CHANGELOG.md",
+    "SECURITY.md"
 ]
 
 [dependencies]

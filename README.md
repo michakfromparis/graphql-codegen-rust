@@ -16,7 +16,7 @@ A powerful Rust CLI tool that transforms GraphQL schemas into production-ready d
 
 ```bash
 # Install from source
-git clone https://github.com/yourusername/graphql-codegen-rust.git
+git clone https://github.com/michakfromparis/graphql-codegen-rust.git
 cd graphql-codegen-rust && cargo build --release
 
 # Initialize your project

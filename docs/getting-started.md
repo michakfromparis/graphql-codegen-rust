@@ -7,7 +7,7 @@ Welcome to GraphQL Rust Codegen! This guide will get you up and running with gen
 ### From Source (Recommended)
 
 ```bash
-git clone https://github.com/yourusername/graphql-codegen-rust.git
+git clone https://github.com/michakfromparis/graphql-codegen-rust.git
 cd graphql-codegen-rust
 cargo build --release
 ```

@@ -17,7 +17,7 @@ If you discover a security vulnerability in this project, please report it respo
 
 Please **DO NOT** create a public GitHub issue for security vulnerabilities.
 
-Instead, please email security@yourdomain.com (replace with your actual email) with the following information:
+Instead, please email github@michak.net with the following information:
 
 - A clear description of the vulnerability
 - Steps to reproduce the issue

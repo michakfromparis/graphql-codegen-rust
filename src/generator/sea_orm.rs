@@ -23,6 +23,11 @@ impl Default for SeaOrmGenerator {
 
 impl CodeGenerator for SeaOrmGenerator {
     fn generate_schema(&self, schema: &ParsedSchema, _config: &Config) -> anyhow::Result<String> {
+        // Handle empty schemas gracefully
+        if schema.types.is_empty() && schema.enums.is_empty() {
+            return Ok("// No GraphQL types or enums found in schema\n".to_string());
+        }
+
         let mut output = String::new();
 
         // Add header comment
@@ -68,19 +73,38 @@ impl CodeGenerator for SeaOrmGenerator {
     ) -> anyhow::Result<HashMap<String, String>> {
         let mut entities = HashMap::new();
 
-        // Only generate entities for Object types (not interfaces or unions)
+        // Handle empty schemas gracefully
+        if schema.types.is_empty() && schema.enums.is_empty() {
+            return Ok(entities);
+        }
+
+        // Generate entities for Object types (not interfaces or unions)
         for (type_name, parsed_type) in &schema.types {
             if matches!(parsed_type.kind, crate::parser::TypeKind::Object) {
-                let entity_code = self.generate_entity_struct(type_name, parsed_type, config)?;
+                let entity_code = self
+                    .generate_entity_struct(type_name, parsed_type, config)
+                    .map_err(|e| {
+                        anyhow::anyhow!(
+                            "Failed to generate Sea-ORM entity for type '{}': {}",
+                            type_name,
+                            e
+                        )
+                    })?;
                 entities.insert(format!("{}.rs", to_snake_case(type_name)), entity_code);
             }
         }
 
         // Generate enums
         for (enum_name, parsed_enum) in &schema.enums {
-            let enum_code = self.generate_enum_type(enum_name, parsed_enum)?;
+            let enum_code = self
+                .generate_enum_type(enum_name, parsed_enum)
+                .map_err(|e| {
+                    anyhow::anyhow!("Failed to generate Sea-ORM enum '{}': {}", enum_name, e)
+                })?;
             entities.insert(format!("{}.rs", to_snake_case(enum_name)), enum_code);
         }
+
+        // Handle empty schemas gracefully - no error for empty schemas
 
         Ok(entities)
     }

@@ -24,6 +24,11 @@ impl Default for DieselGenerator {
 
 impl CodeGenerator for DieselGenerator {
     fn generate_schema(&self, schema: &ParsedSchema, config: &Config) -> anyhow::Result<String> {
+        // Handle empty schemas gracefully
+        if schema.types.is_empty() && schema.enums.is_empty() {
+            return Ok("// No GraphQL types or enums found in schema\n".to_string());
+        }
+
         let mut output = String::new();
 
         // Add imports
@@ -31,13 +36,32 @@ impl CodeGenerator for DieselGenerator {
 
         // Generate table! macros for each type
         for (type_name, parsed_type) in &schema.types {
-            output.push_str(&self.generate_table_macro(type_name, parsed_type, config)?);
+            if !matches!(parsed_type.kind, crate::parser::TypeKind::Object) {
+                continue; // Skip interfaces and unions for Diesel schema
+            }
+            output.push_str(
+                &self
+                    .generate_table_macro(type_name, parsed_type, config)
+                    .map_err(|e| {
+                        anyhow::anyhow!(
+                            "Failed to generate table macro for type '{}': {}",
+                            type_name,
+                            e
+                        )
+                    })?,
+            );
             output.push('\n');
         }
 
         // Generate enum types if needed
         for (enum_name, parsed_enum) in &schema.enums {
-            output.push_str(&self.generate_enum_type(enum_name, parsed_enum)?);
+            output.push_str(
+                &self
+                    .generate_enum_type(enum_name, parsed_enum)
+                    .map_err(|e| {
+                        anyhow::anyhow!("Failed to generate enum type '{}': {}", enum_name, e)
+                    })?,
+            );
             output.push('\n');
         }
 
@@ -51,12 +75,35 @@ impl CodeGenerator for DieselGenerator {
     ) -> anyhow::Result<HashMap<String, String>> {
         let mut entities = HashMap::new();
 
-        // Only generate entities for Object types (not interfaces or unions)
+        // Handle empty schemas gracefully
+        if schema.types.is_empty() && schema.enums.is_empty() {
+            return Ok(entities);
+        }
+
+        // Generate entities for Object types (not interfaces or unions)
         for (type_name, parsed_type) in &schema.types {
             if matches!(parsed_type.kind, crate::parser::TypeKind::Object) {
-                let entity_code = self.generate_entity_struct(type_name, parsed_type, config)?;
+                let entity_code = self
+                    .generate_entity_struct(type_name, parsed_type, config)
+                    .map_err(|e| {
+                        anyhow::anyhow!(
+                            "Failed to generate entity struct for type '{}': {}",
+                            type_name,
+                            e
+                        )
+                    })?;
                 entities.insert(format!("{}.rs", to_snake_case(type_name)), entity_code);
             }
+        }
+
+        // Generate enums
+        for (enum_name, parsed_enum) in &schema.enums {
+            let enum_code = self
+                .generate_enum_type(enum_name, parsed_enum)
+                .map_err(|e| {
+                    anyhow::anyhow!("Failed to generate enum type '{}': {}", enum_name, e)
+                })?;
+            entities.insert(format!("{}.rs", to_snake_case(enum_name)), enum_code);
         }
 
         Ok(entities)
@@ -69,10 +116,23 @@ impl CodeGenerator for DieselGenerator {
     ) -> anyhow::Result<Vec<MigrationFile>> {
         let mut migrations = Vec::new();
 
-        // Only generate migrations for Object types (not interfaces or unions)
+        // Handle empty schemas gracefully
+        if schema.types.is_empty() && schema.enums.is_empty() {
+            return Ok(migrations);
+        }
+
+        // Generate migrations for Object types (not interfaces or unions)
         for (type_name, parsed_type) in &schema.types {
             if matches!(parsed_type.kind, crate::parser::TypeKind::Object) {
-                let migration = self.generate_table_migration(type_name, parsed_type, config)?;
+                let migration = self
+                    .generate_table_migration(type_name, parsed_type, config)
+                    .map_err(|e| {
+                        anyhow::anyhow!(
+                            "Failed to generate migration for type '{}': {}",
+                            type_name,
+                            e
+                        )
+                    })?;
                 migrations.push(migration);
             }
         }
