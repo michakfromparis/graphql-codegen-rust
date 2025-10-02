@@ -19,26 +19,24 @@ jobs:
     - name: Dependency Review
       uses: actions/dependency-review-action@v4
 
-  # License checking temporarily disabled due to Rust version compatibility
-  # TODO: Re-enable when MSRV is updated to support cargo-deny
-  # license-check:
-  #   name: License Check
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - name: Checkout repository
-  #     uses: actions/checkout@v4
-  #
-  #   - name: Install Rust toolchain
-  #     uses: dtolnay/rust-toolchain@stable
-  #
-  #   - name: Install cargo-deny
-  #     run: cargo install cargo-deny --version 0.17.0
-  #
-  #   - name: Check licenses
-  #     run: cargo deny check licenses
-  #
-  #   - name: Check bans (duplicate dependencies)
-  #     run: cargo deny check bans
-  #
-  #   - name: Check security advisories
-  #     run: cargo deny check advisories
+  license-check:
+    name: License Check
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Install cargo-deny
+      run: cargo install cargo-deny
+
+    - name: Check licenses
+      run: cargo deny check licenses
+
+    - name: Check bans (duplicate dependencies)
+      run: cargo deny check bans
+
+    - name: Check security advisories
+      run: cargo deny check advisories
