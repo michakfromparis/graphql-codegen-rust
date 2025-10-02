@@ -870,6 +870,7 @@ dependencies = [
  "graphql-parser",
  "proc-macro2",
  "quote",
+ "rand",
  "reqwest",
  "sea-orm",
  "serde",
