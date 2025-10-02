@@ -188,13 +188,18 @@ async fn generate_all_code(
     let src_dir = config.output_dir.join("src");
     fs::create_dir_all(&src_dir)?;
 
-    // Generate schema file (for Diesel)
+    // Generate schema file
+    logger.trace("Generating schema file...");
+    let schema_code = generator.generate_schema(schema, config)?;
     if config.orm == cli::OrmType::Diesel {
-        logger.trace("Generating Diesel schema file...");
-        let schema_code = generator.generate_schema(schema, config)?;
         let schema_path = src_dir.join("schema.rs");
         fs::write(schema_path, schema_code)?;
-        logger.debug("Generated schema.rs");
+        logger.info("Generated schema.rs");
+    } else if config.orm == cli::OrmType::SeaOrm {
+        // Sea-ORM generates a mod.rs file at the root
+        let mod_path = config.output_dir.join("mod.rs");
+        fs::write(mod_path, schema_code)?;
+        logger.info("Generated mod.rs");
     }
 
     // Generate entity files
@@ -208,7 +213,7 @@ async fn generate_all_code(
         let entity_path = entities_dir.join(filename);
         fs::write(entity_path, code)?;
     }
-    logger.debug(&format!("Generated {} entity files", entity_count));
+    logger.info(&format!("Generated {} entity files", entity_count));
 
     // Generate migrations
     logger.trace("Generating migration files...");
@@ -227,7 +232,7 @@ async fn generate_all_code(
         fs::write(up_path, migration.up_sql)?;
         fs::write(down_path, migration.down_sql)?;
     }
-    logger.debug(&format!("Generated {} migrations", migration_count));
+    logger.info(&format!("Generated {} migrations", migration_count));
 
     Ok(())
 }
