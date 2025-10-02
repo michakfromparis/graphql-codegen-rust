@@ -269,9 +269,19 @@ impl Introspector {
         let status = response.status();
 
         if !status.is_success() {
+            let status_code = status.as_u16();
+            let error_msg = match status_code {
+                400 => "Bad Request - The GraphQL query may be malformed",
+                401 => "Unauthorized - Authentication required. Check your headers",
+                403 => "Forbidden - Access denied. Verify your credentials and permissions",
+                404 => "Not Found - GraphQL endpoint not found at the specified URL",
+                500 => "Internal Server Error - The GraphQL server encountered an error",
+                _ => "HTTP request failed",
+            };
+
             return Err(anyhow::anyhow!(
-                "GraphQL introspection failed with status: {}",
-                status
+                "GraphQL introspection failed with HTTP {}: {}\nURL: {}\n\nTroubleshooting:\n- Verify the URL is correct and accessible\n- Check authentication headers if required\n- Ensure the server supports GraphQL introspection",
+                status_code, error_msg, url
             ));
         }
 
@@ -279,15 +289,34 @@ impl Introspector {
 
         if let Some(errors) = introspection_response.errors {
             let error_messages: Vec<String> = errors.into_iter().map(|e| e.message).collect();
-            return Err(anyhow::anyhow!(
-                "GraphQL introspection errors: {}",
-                error_messages.join(", ")
-            ));
+            let error_count = error_messages.len();
+
+            let mut error_text = format!(
+                "GraphQL introspection failed with {} error{}:\n",
+                error_count,
+                if error_count == 1 { "" } else { "s" }
+            );
+
+            for (i, message) in error_messages.iter().enumerate() {
+                error_text.push_str(&format!("{}. {}\n", i + 1, message));
+            }
+
+            error_text.push_str("\nCommon causes:\n");
+            error_text.push_str("- Introspection is disabled on the GraphQL server\n");
+            error_text.push_str("- Authentication or authorization issues\n");
+            error_text.push_str("- Server-side GraphQL schema errors\n");
+            error_text.push_str("- Network connectivity problems\n");
+
+            return Err(anyhow::anyhow!(error_text));
         }
 
         let schema = introspection_response
             .data
-            .ok_or_else(|| anyhow::anyhow!("No data returned from GraphQL introspection"))?
+            .ok_or_else(|| {
+                anyhow::anyhow!(
+                    "No data returned from GraphQL introspection\n\nThis typically indicates:\n- The GraphQL endpoint returned an empty response\n- The server may not support the introspection query\n- Network issues prevented a complete response\n\nTry:\n- Checking if the endpoint supports GraphQL introspection\n- Verifying network connectivity\n- Testing with a simple GraphQL query first"
+                )
+            })?
             .schema;
 
         Ok(schema)
