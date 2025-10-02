@@ -23,11 +23,9 @@ impl Default for SeaOrmGenerator {
 
 impl CodeGenerator for SeaOrmGenerator {
     fn generate_schema(&self, schema: &ParsedSchema, _config: &Config) -> anyhow::Result<String> {
-        // Validate schema has types to generate
+        // Handle empty schemas gracefully
         if schema.types.is_empty() && schema.enums.is_empty() {
-            return Err(anyhow::anyhow!(
-                "No GraphQL types or enums found in schema.\n\nThis usually means:\n- The GraphQL schema is empty or invalid\n- Introspection query failed to return type information\n- Only built-in scalar types (String, Int, etc.) were found\n\nEnsure your GraphQL endpoint supports introspection and contains user-defined types."
-            ));
+            return Ok("// No GraphQL types or enums found in schema\n".to_string());
         }
 
         let mut output = String::new();
@@ -75,11 +73,14 @@ impl CodeGenerator for SeaOrmGenerator {
     ) -> anyhow::Result<HashMap<String, String>> {
         let mut entities = HashMap::new();
 
-        // Only generate entities for Object types (not interfaces or unions)
-        let mut object_count = 0;
+        // Handle empty schemas gracefully
+        if schema.types.is_empty() && schema.enums.is_empty() {
+            return Ok(entities);
+        }
+
+        // Generate entities for Object types (not interfaces or unions)
         for (type_name, parsed_type) in &schema.types {
             if matches!(parsed_type.kind, crate::parser::TypeKind::Object) {
-                object_count += 1;
                 let entity_code = self
                     .generate_entity_struct(type_name, parsed_type, config)
                     .map_err(|e| {
@@ -103,11 +104,7 @@ impl CodeGenerator for SeaOrmGenerator {
             entities.insert(format!("{}.rs", to_snake_case(enum_name)), enum_code);
         }
 
-        if object_count == 0 && schema.enums.is_empty() {
-            return Err(anyhow::anyhow!(
-                "No Object types or enums found in GraphQL schema.\n\nSea-ORM entities can only be generated for Object types and enums.\n\nYour schema may contain:\n- Only interfaces and unions\n- Only built-in scalar types\n- No user-defined object types or enums\n\nEnsure your GraphQL schema contains Object type or enum definitions."
-            ));
-        }
+        // Handle empty schemas gracefully - no error for empty schemas
 
         Ok(entities)
     }
