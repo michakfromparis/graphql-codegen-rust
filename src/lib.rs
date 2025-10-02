@@ -127,7 +127,7 @@
 //!
 //! ## Requirements
 //!
-//! - Rust 1.70+
+//! - Rust 1.86+
 //! - A GraphQL API that supports introspection
 //! - Appropriate database dependencies based on your ORM choice
 
