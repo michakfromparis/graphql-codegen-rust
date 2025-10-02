@@ -350,7 +350,8 @@ make version-major   # Bump major version (1.0.0 -> 2.0.0)
 ## Limitations
 
 - Currently focuses on object types and basic relationships
-- Unions, interfaces, and complex nested types are not yet fully supported
+- Many-to-many relationships and polymorphic associations are not yet supported
+- Complex nested union/interface hierarchies may need manual adjustments
 - Subscriptions are ignored
 - Custom scalars require manual mapping in configuration
 
@@ -358,11 +359,12 @@ make version-major   # Bump major version (1.0.0 -> 2.0.0)
 
 Contributions are welcome! Areas for improvement:
 
-- SDL parsing support (currently introspection-only)
-- Union/interface support
-- Better relationship handling
-- More ORM integrations
+- Advanced relationship mapping (many-to-many, polymorphic associations)
+- Enhanced union/interface support (complex nested hierarchies)
+- GraphQL subscription integration
 - Plugin system for custom generators
+- Additional ORM integrations
+- Performance optimizations
 
 ## License
 
