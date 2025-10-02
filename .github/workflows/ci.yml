@@ -70,16 +70,16 @@ jobs:
         # PostgreSQL would need to be installed separately if needed
 
     - name: Check code formatting
-      run: cargo fmt --all -- --check
+      run: make fmt-check
 
     - name: Run clippy
-      run: cargo clippy --all-targets ${{ matrix.features != '' && format('--features {0}', matrix.features) || '' }} -- -D warnings
+      run: make lint
 
     - name: Build
-      run: cargo build ${{ matrix.features != '' && format('--features {0}', matrix.features) || '' }}
+      run: make build
 
     - name: Run tests
-      run: cargo test ${{ matrix.features != '' && format('--features {0}', matrix.features) || '' }}
+      run: make test
 
     - name: Test documentation
       run: cargo test --doc ${{ matrix.features != '' && format('--features {0}', matrix.features) || '' }}
@@ -98,7 +98,7 @@ jobs:
       run: cargo install cargo-audit
 
     - name: Run security audit
-      run: cargo audit --ignore RUSTSEC-2023-0071
+      run: make audit
 
   msrv:
     name: Minimum Supported Rust Version
@@ -116,7 +116,7 @@ jobs:
       uses: Swatinem/rust-cache@v2
 
     - name: Check MSRV compatibility
-      run: cargo check --all-targets
+      run: make build
 
   coverage:
     name: Code coverage
@@ -137,7 +137,7 @@ jobs:
       run: cargo install cargo-llvm-cov
 
     - name: Generate code coverage
-      run: cargo llvm-cov --all-features --workspace --lcov --output-path lcov.info
+      run: make coverage
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v4
