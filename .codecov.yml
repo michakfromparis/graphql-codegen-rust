@@ -1,0 +1,30 @@
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%
+    patch:
+      default:
+        target: auto
+        threshold: 1%
+
+comment:
+  layout: "reach,diff,flags,tree"
+  behavior: default
+  require_changes: false
+
+github_checks:
+  annotations: true
+
+# Rust-specific configuration
+ignore:
+  - "target/"
+  - "**/*.rs.bk"
+
+# Flag management for Rust
+flag_management:
+  default_rules:
+    carryforward: true
+    paths:
+      - src/

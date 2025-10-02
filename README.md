@@ -3,6 +3,7 @@
 **The missing piece for offline-first applications** 🚀
 
 [![CI](https://github.com/michakfromparis/graphql-codegen-rust/actions/workflows/ci.yml/badge.svg)](https://github.com/michakfromparis/graphql-codegen-rust/actions)
+[![codecov](https://codecov.io/gh/michakfromparis/graphql-codegen-rust/branch/main/graph/badge.svg)](https://codecov.io/gh/michakfromparis/graphql-codegen-rust)
 [![Crates.io](https://img.shields.io/crates/v/graphql-codegen-rust.svg)](https://crates.io/crates/graphql-codegen-rust)
 [![Docs.rs](https://docs.rs/graphql-codegen-rust/badge.svg)](https://docs.rs/graphql-codegen-rust)
 
