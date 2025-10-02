@@ -224,6 +224,16 @@ This project uses GitHub Actions for continuous integration and deployment:
 - **Code Quality**: Automated formatting checks, clippy linting, and security auditing
 - **Release Automation**: Automated publishing to crates.io when version tags are pushed
 - **Dependency Management**: Automated dependency updates via Dependabot
+- **License Checking**: Configured with `cargo-deny` (temporarily disabled due to MSRV constraints)
+
+### Running License Checks Locally
+
+To run license and security checks locally, ensure you have Rust 1.88+ and run:
+
+```bash
+cargo install cargo-deny
+cargo deny check
+```
 
 ### Publishing a New Release
 
