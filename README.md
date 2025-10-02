@@ -4,13 +4,32 @@ A Rust CLI tool that generates ORM code from GraphQL schemas. Perfect for offlin
 
 ## Features
 
-- **GraphQL Schema Introspection**: Fetches and parses GraphQL schemas from remote endpoints
+- **GraphQL Schema Parsing**: Supports both GraphQL introspection and SDL schema files
 - **Multi-ORM Support**: Generates code for both Diesel and Sea-ORM
 - **Database Support**: Works with SQLite (default), PostgreSQL, and MySQL
 - **Migration Generation**: Automatically creates SQL migration files
+- **Union & Interface Support**: Handles GraphQL unions and interfaces in schema parsing
+- **Relationship Mapping**: Automatic foreign key detection and relationship generation
 - **Configuration Management**: Supports both TOML and YAML configs (compatible with GraphQL Code Generator)
 - **Type Safety**: Generates strongly-typed Rust structs from GraphQL schemas
 - **Tauri Integration**: Designed for seamless integration with Tauri app build processes
+
+## Comparison to Cynic
+
+| Feature | graphql-rust-codegen | cynic |
+|---------|---------------------|-------|
+| **Purpose** | Database/ORM code generation | GraphQL client code generation |
+| **Output** | Diesel/Sea-ORM entities, migrations | Query builders, response types |
+| **Use Case** | Offline-first apps, data persistence | API clients, GraphQL queries |
+| **Architecture** | Database-first | Client-first |
+| **Schema Source** | GraphQL schemas (introspection/SDL) | GraphQL schemas |
+| **Runtime Dependencies** | ORM libraries (Diesel/Sea-ORM) | HTTP client + cynic runtime |
+| **Tauri Integration** | Native support | Possible but not primary |
+| **Migration Support** | ✅ Automatic SQL migrations | ❌ N/A |
+| **Relationship Mapping** | ✅ Foreign keys, joins | ❌ N/A |
+| **Database Types** | ✅ SQLite, PostgreSQL, MySQL | ❌ N/A |
+
+**TL;DR**: cynic generates *client code* for making GraphQL requests, while graphql-rust-codegen generates *database code* for persisting GraphQL data locally.
 
 ## Installation
 
