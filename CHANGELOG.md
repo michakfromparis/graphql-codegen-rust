@@ -11,6 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Initial release of GraphQL Rust Codegen
+- **Dual schema support**: GraphQL introspection + SDL file parsing
+- **Union and interface support**: Advanced GraphQL schema type handling
+- **Relationship mapping**: Automatic foreign key detection and ORM relationships
+- **Structured logging**: Verbosity levels and enhanced error handling
 - Support for generating Diesel ORM code from GraphQL schemas
 - Support for generating Sea-ORM code from GraphQL schemas
 - YAML configuration support compatible with GraphQL Code Generator
@@ -19,8 +23,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Migration generation for database schemas
 - Entity generation for ORM models
 - CLI interface with init and generate commands
+- CLI verbosity options (-v, -vv, -vvv)
 - Library interface for programmatic usage
 - Comprehensive test suite
+- Comprehensive documentation with guides, examples, and reference
 
 ### Changed
 - Renamed from `graphql-diesel-sync` to `graphql-codegen-rust`
