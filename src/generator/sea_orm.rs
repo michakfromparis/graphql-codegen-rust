@@ -22,10 +22,43 @@ impl Default for SeaOrmGenerator {
 }
 
 impl CodeGenerator for SeaOrmGenerator {
-    fn generate_schema(&self, _schema: &ParsedSchema, _config: &Config) -> anyhow::Result<String> {
-        // Sea-ORM doesn't have a schema.rs equivalent like Diesel
-        // Return empty string or basic setup
-        Ok("// Sea-ORM entities are defined in separate files\n".to_string())
+    fn generate_schema(&self, schema: &ParsedSchema, _config: &Config) -> anyhow::Result<String> {
+        let mut output = String::new();
+
+        // Add header comment
+        output.push_str("//! Sea-ORM entities generated from GraphQL schema\n\n");
+
+        // Generate module declarations for all entities
+        for type_name in schema.types.keys() {
+            let module_name = to_snake_case(type_name);
+            output.push_str(&format!("pub mod {};\n", module_name));
+        }
+
+        // Generate module declarations for enums
+        for enum_name in schema.enums.keys() {
+            let module_name = to_snake_case(enum_name);
+            output.push_str(&format!("pub mod {};\n", module_name));
+        }
+
+        output.push('\n');
+
+        // Generate re-exports for convenience
+        output.push_str("// Re-exports for convenience\n");
+        for type_name in schema.types.keys() {
+            let module_name = to_snake_case(type_name);
+            output.push_str(&format!("pub use {}::Entity;\n", module_name));
+            output.push_str(&format!("pub use {}::Model;\n", module_name));
+            output.push_str(&format!("pub use {}::ActiveModel;\n", module_name));
+            output.push_str(&format!("pub use {}::Column;\n", module_name));
+        }
+
+        // Re-export enums
+        for enum_name in schema.enums.keys() {
+            let module_name = to_snake_case(enum_name);
+            output.push_str(&format!("pub use {}::{};\n", module_name, enum_name));
+        }
+
+        Ok(output)
     }
 
     fn generate_entities(
@@ -112,21 +145,42 @@ impl SeaOrmGenerator {
         }
         output.push_str("}\n\n");
 
-        // Generate ActiveModelBehavior
+        // Generate PrimaryKey
         output.push_str("#[derive(Copy, Clone, Debug, EnumIter)]\n");
         output.push_str("pub enum PrimaryKey {\n");
         // Assume id is primary key
         output.push_str("    Id,\n");
         output.push_str("}\n\n");
 
+        // Determine the ID type based on database
+        let id_type = match config.db {
+            DatabaseType::Sqlite => "i32",
+            DatabaseType::Postgres => "uuid::Uuid",
+            DatabaseType::Mysql => "u32",
+        };
+
+        let auto_increment = match config.db {
+            DatabaseType::Sqlite => "true",
+            DatabaseType::Postgres => "false", // UUIDs don't auto-increment
+            DatabaseType::Mysql => "true",
+        };
+
         output.push_str("impl PrimaryKeyTrait for PrimaryKey {\n");
-        output.push_str("    type ValueType = i32;\n");
+        output.push_str(&format!("    type ValueType = {};\n", id_type));
         output.push_str("    fn auto_increment() -> bool {\n");
-        output.push_str("        true\n");
+        output.push_str(&format!("        {}\n", auto_increment));
         output.push_str("    }\n");
         output.push_str("}\n\n");
 
-        output.push_str("impl ActiveModelBehavior for ActiveModel {}\n");
+        output.push_str("impl ActiveModelBehavior for ActiveModel {}\n\n");
+
+        // Generate Entity constant (Sea-ORM convention)
+        output.push_str("pub struct Entity;\n\n");
+        output.push_str("impl EntityName for Entity {\n");
+        output.push_str("    fn table_name(&self) -> &str {\n");
+        output.push_str(&format!("        \"{}\"\n", table_name));
+        output.push_str("    }\n");
+        output.push_str("}\n\n");
 
         Ok(output)
     }
