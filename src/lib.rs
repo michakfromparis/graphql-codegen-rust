@@ -68,7 +68,7 @@ pub async fn generate_from_config_file<P: AsRef<Path>>(config_path: P) -> anyhow
     generator.generate_from_config(&config).await
 }
 
-async fn generate_all_code(
+pub async fn generate_all_code(
     schema: &parser::ParsedSchema,
     config: &Config,
     generator: &dyn generator::CodeGenerator,
@@ -78,12 +78,17 @@ async fn generate_all_code(
     let src_dir = config.output_dir.join("src");
     fs::create_dir_all(&src_dir)?;
 
-    // Generate schema file (for Diesel)
+    // Generate schema file
+    let schema_code = generator.generate_schema(schema, config)?;
     if config.orm == cli::OrmType::Diesel {
-        let schema_code = generator.generate_schema(schema, config)?;
         let schema_path = src_dir.join("schema.rs");
         fs::write(schema_path, schema_code)?;
         println!("Generated schema.rs");
+    } else if config.orm == cli::OrmType::SeaOrm {
+        // Sea-ORM generates a mod.rs file at the root
+        let mod_path = config.output_dir.join("mod.rs");
+        fs::write(mod_path, schema_code)?;
+        println!("Generated mod.rs");
     }
 
     // Generate entity files
