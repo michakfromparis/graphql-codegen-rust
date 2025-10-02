@@ -94,41 +94,184 @@ impl Default for RustCodegenConfig {
     }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+/// Configuration for GraphQL code generation.
+///
+/// The `Config` struct defines all parameters needed to generate Rust ORM code
+/// from a GraphQL schema. It supports both programmatic creation and loading
+/// from configuration files (TOML or YAML).
+///
+/// ## Required Fields
+///
+/// - `url`: GraphQL endpoint URL that supports introspection
+/// - `orm`: ORM to generate code for (Diesel or Sea-ORM)
+/// - `db`: Target database (SQLite, PostgreSQL, or MySQL)
+/// - `output_dir`: Directory where generated code will be written
+///
+/// ## Optional Fields
+///
+/// All other fields have sensible defaults and are typically configured
+/// through configuration files rather than programmatically.
+///
+/// ## Configuration Files
+///
+/// ### TOML Format (`graphql-codegen-rust.toml`)
+/// ```toml
+/// url = "https://api.example.com/graphql"
+/// orm = "Diesel"
+/// db = "Postgres"
+/// output_dir = "./generated"
+///
+/// [headers]
+/// Authorization = "Bearer token"
+///
+/// [type_mappings]
+/// "MyCustomType" = "String"
+/// ```
+///
+/// ### YAML Format (`codegen.yml`) - *Requires `yaml-codegen-config` feature*
+/// ```yaml
+/// schema:
+///   url: https://api.example.com/graphql
+///   headers:
+///     Authorization: Bearer token
+///
+/// rust_codegen:
+///   orm: Diesel
+///   db: Postgres
+///   output_dir: ./generated
+/// ```
+///
+/// ## Example
+///
+/// ```rust
+/// use graphql_codegen_rust::{Config, cli::{OrmType, DatabaseType}};
+/// use std::collections::HashMap;
+///
+/// let config = Config {
+///     url: "https://api.example.com/graphql".to_string(),
+///     orm: OrmType::Diesel,
+///     db: DatabaseType::Postgres,
+///     output_dir: "./generated".into(),
+///     headers: HashMap::from([
+///         ("Authorization".to_string(), "Bearer token".to_string())
+///     ]),
+///     ..Default::default()
+/// };
+/// ```
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct Config {
-    /// GraphQL endpoint URL
+    /// URL of the GraphQL endpoint that supports introspection.
+    ///
+    /// This must be a GraphQL API that responds to introspection queries.
+    /// The endpoint should be accessible and may require authentication headers.
+    ///
+    /// # Examples
+    /// - `"https://api.github.com/graphql"` (GitHub's public API)
+    /// - `"https://api.example.com/graphql"` (your custom API)
+    /// - `"http://localhost:4000/graphql"` (local development)
     pub url: String,
 
-    /// ORM type
+    /// ORM framework to generate code for.
+    ///
+    /// Determines the structure and style of generated code:
+    /// - `OrmType::Diesel`: Generates table schemas and Queryable structs
+    /// - `OrmType::SeaOrm`: Generates Entity models and ActiveModel structs
     pub orm: OrmType,
 
-    /// Database type
+    /// Target database backend.
+    ///
+    /// Affects type mappings and SQL generation:
+    /// - `DatabaseType::Sqlite`: Uses INTEGER for IDs, TEXT for strings
+    /// - `DatabaseType::Postgres`: Uses UUID for IDs, native JSON support
+    /// - `DatabaseType::Mysql`: Uses INT for IDs, MEDIUMTEXT for large content
     pub db: DatabaseType,
 
-    /// Output directory
+    /// Directory where generated code will be written.
+    ///
+    /// The directory will be created if it doesn't exist. Generated files include:
+    /// - `src/schema.rs` (Diesel table definitions)
+    /// - `src/entities/*.rs` (Entity structs)
+    /// - `src/mod.rs` (Sea-ORM module definitions)
+    /// - `migrations/` (Database migration files)
     pub output_dir: PathBuf,
 
-    /// Additional headers for requests
+    /// Additional HTTP headers to send with GraphQL requests.
+    ///
+    /// Common headers include authentication tokens, API keys, or content-type specifications.
+    /// Headers are sent with both introspection queries and any follow-up requests.
+    ///
+    /// # Examples
+    /// ```rust
+    /// use std::collections::HashMap;
+    ///
+    /// let mut headers = HashMap::new();
+    /// headers.insert("Authorization".to_string(), "Bearer token123".to_string());
+    /// headers.insert("X-API-Key".to_string(), "key456".to_string());
+    /// ```
     #[serde(default)]
     pub headers: HashMap<String, String>,
 
-    /// Custom type mappings
+    /// Custom type mappings for GraphQL types to Rust types.
+    ///
+    /// Maps GraphQL type names to custom Rust types. Useful for:
+    /// - Custom scalar types (DateTime, UUID, etc.)
+    /// - Domain-specific types
+    /// - Third-party library types
+    ///
+    /// If a GraphQL type is not found in this map, default mappings are used
+    /// based on the database type and built-in GraphQL scalars.
+    ///
+    /// # Examples
+    /// ```toml
+    /// [type_mappings]
+    /// "DateTime" = "chrono::DateTime<chrono::Utc>"
+    /// "UUID" = "uuid::Uuid"
+    /// "Email" = "String"  # Simple string wrapper
+    /// ```
     #[serde(default)]
     pub type_mappings: HashMap<String, String>,
 
-    /// Custom scalar mappings
+    /// Custom scalar type mappings for GraphQL scalars.
+    ///
+    /// Similar to `type_mappings` but specifically for GraphQL scalar types.
+    /// These are applied before the built-in scalar mappings.
+    ///
+    /// # Examples
+    /// ```toml
+    /// [scalar_mappings]
+    /// "Date" = "chrono::NaiveDate"
+    /// "Timestamp" = "i64"
+    /// ```
     #[serde(default)]
     pub scalar_mappings: HashMap<String, String>,
 
-    /// Table naming convention
+    /// Naming convention for database tables and columns.
+    ///
+    /// Controls how GraphQL type/field names are converted to database identifiers.
+    /// - `TableNamingConvention::SnakeCase`: `UserProfile` → `user_profile`
+    /// - `TableNamingConvention::PascalCase`: `UserProfile` → `UserProfile`
+    ///
+    /// SnakeCase is recommended for most databases.
     #[serde(default)]
     pub table_naming: TableNamingConvention,
 
-    /// Whether to generate migrations
+    /// Whether to generate database migration files.
+    ///
+    /// When enabled, creates SQL migration files in the `migrations/` directory
+    /// that can be applied to set up the database schema. Each GraphQL type
+    /// gets its own migration with CREATE TABLE statements.
+    ///
+    /// Default: `true`
     #[serde(default = "default_true")]
     pub generate_migrations: bool,
 
-    /// Whether to generate entity structs
+    /// Whether to generate Rust entity/model structs.
+    ///
+    /// When enabled, creates Rust structs that represent the GraphQL types:
+    /// - Diesel: `Queryable` structs for reading data
+    /// - Sea-ORM: `Model` structs with relationships
+    ///
+    /// Default: `true`
     #[serde(default = "default_true")]
     pub generate_entities: bool,
 }
