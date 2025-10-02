@@ -216,6 +216,33 @@ cargo run -- init --url http://localhost:4000/graphql
 cargo run --features yaml-codegen-config -- init --url http://localhost:4000/graphql
 ```
 
+## CI/CD
+
+This project uses GitHub Actions for continuous integration and deployment:
+
+- **CI Pipeline**: Runs on every push/PR with comprehensive testing across multiple platforms (Linux, macOS, Windows) and Rust versions
+- **Code Quality**: Automated formatting checks, clippy linting, and security auditing
+- **Release Automation**: Automated publishing to crates.io when version tags are pushed
+- **Dependency Management**: Automated dependency updates via Dependabot
+
+### Publishing a New Release
+
+1. Update version in `Cargo.toml`
+2. Update `CHANGELOG.md`
+3. Commit changes
+4. Create and push a version tag:
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+The release workflow will automatically:
+- Run full test suite
+- Build and verify package
+- Publish to crates.io
+- Create GitHub release
+
 ## Limitations
 
 - Currently focuses on object types and basic relationships
