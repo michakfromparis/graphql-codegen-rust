@@ -17,8 +17,8 @@ async fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Init { url, orm, db, output, headers } => {
-            println!("Initializing GraphQL sync...");
+        Some(Commands::Init { url, orm, db, output, headers }) => {
+            println!("Initializing GraphQL codegen...");
             println!("URL: {}", url);
             println!("ORM: {:?}", orm);
             println!("Database: {:?}", db);
@@ -45,21 +45,11 @@ async fn main() -> anyhow::Result<()> {
             println!("✅ Initialization complete!");
             println!("Config saved to: {:?}", config_path);
         }
-        Commands::Generate { types: _, output } => {
+        Some(Commands::Generate { config, types: _, output }) => {
             println!("Generating code...");
 
             // Find config file
-            let config_path = if let Some(ref output_dir) = output {
-                Config::config_path(output_dir)
-            } else {
-                // Try to find config in current directory
-                let current_config = PathBuf::from("./graphql-diesel-sync.toml");
-                if current_config.exists() {
-                    current_config
-                } else {
-                    return Err(anyhow::anyhow!("Could not find graphql-diesel-sync.toml config file. Run 'init' first or specify --output."));
-                }
-            };
+            let config_path = config.unwrap_or_else(|| Config::auto_detect_config()?);
 
             let mut config = Config::from_file(&config_path)?;
 
@@ -67,6 +57,23 @@ async fn main() -> anyhow::Result<()> {
             if let Some(output_dir) = output {
                 config.output_dir = output_dir;
             }
+
+            // Fetch and parse schema
+            let parser = GraphQLParser::new();
+            let schema = parser.parse_from_introspection(&config.url, &config.headers).await?;
+
+            // Generate code
+            let generator = create_generator(&config.orm);
+            generate_all_code(&schema, &config, &generator).await?;
+
+            println!("✅ Code generation complete!");
+        }
+        None => {
+            // Default behavior: generate from auto-detected config
+            println!("Generating code from auto-detected config...");
+
+            let config_path = Config::auto_detect_config()?;
+            let config = Config::from_file(&config_path)?;
 
             // Fetch and parse schema
             let parser = GraphQLParser::new();
