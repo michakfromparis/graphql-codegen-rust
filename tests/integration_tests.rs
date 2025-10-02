@@ -329,14 +329,32 @@ fn test_sdl_parsing() {
     let schema = result.unwrap();
 
     // Check that we parsed the types
-    assert!(schema.types.contains_key("User"), "Should contain User type");
-    assert!(schema.types.contains_key("Post"), "Should contain Post type");
-    assert!(schema.types.contains_key("Category"), "Should contain Category type");
-    assert!(schema.types.contains_key("Node"), "Should contain Node interface");
-    assert!(schema.types.contains_key("SearchResult"), "Should contain SearchResult union");
+    assert!(
+        schema.types.contains_key("User"),
+        "Should contain User type"
+    );
+    assert!(
+        schema.types.contains_key("Post"),
+        "Should contain Post type"
+    );
+    assert!(
+        schema.types.contains_key("Category"),
+        "Should contain Category type"
+    );
+    assert!(
+        schema.types.contains_key("Node"),
+        "Should contain Node interface"
+    );
+    assert!(
+        schema.types.contains_key("SearchResult"),
+        "Should contain SearchResult union"
+    );
 
     // Check that we parsed the enum
-    assert!(schema.enums.contains_key("Role"), "Should contain Role enum");
+    assert!(
+        schema.enums.contains_key("Role"),
+        "Should contain Role enum"
+    );
 
     // Check User type fields
     let user_type = &schema.types["User"];
@@ -346,7 +364,9 @@ fn test_sdl_parsing() {
     // Check that ID field is not nullable
     let id_field = user_type.fields.iter().find(|f| f.name == "id").unwrap();
     assert!(!id_field.is_nullable);
-    assert!(matches!(id_field.field_type, graphql_codegen_rust::parser::FieldType::Scalar(ref s) if s == "ID"));
+    assert!(
+        matches!(id_field.field_type, graphql_codegen_rust::parser::FieldType::Scalar(ref s) if s == "ID")
+    );
 
     // Check that email field is nullable
     let email_field = user_type.fields.iter().find(|f| f.name == "email").unwrap();
@@ -394,15 +414,28 @@ fn test_relationship_detection() {
     // Test relationship detection
     let relationships = graphql_codegen_rust::generator::detect_relationships(&schema);
 
-    assert!(relationships.contains_key("Post"), "Post should have relationships");
+    assert!(
+        relationships.contains_key("Post"),
+        "Post should have relationships"
+    );
 
     let post_relationships = &relationships["Post"];
-    assert_eq!(post_relationships.len(), 1, "Post should have 1 relationship");
+    assert_eq!(
+        post_relationships.len(),
+        1,
+        "Post should have 1 relationship"
+    );
 
     // Check categoryId -> Category relationship
-    let category_rel = post_relationships.iter().find(|r| r.field_name == "categoryId").unwrap();
+    let category_rel = post_relationships
+        .iter()
+        .find(|r| r.field_name == "categoryId")
+        .unwrap();
     assert_eq!(category_rel.related_type, "Category");
-    assert!(matches!(category_rel.relationship_type, graphql_codegen_rust::generator::RelationshipType::BelongsTo));
+    assert!(matches!(
+        category_rel.relationship_type,
+        graphql_codegen_rust::generator::RelationshipType::BelongsTo
+    ));
     assert!(category_rel.foreign_key);
 
     println!("✓ Relationship detection test passed");
@@ -558,8 +591,8 @@ async fn test_codegen_performance() {
         types.insert(
             type_name,
             ParsedType {
-            kind: graphql_codegen_rust::parser::TypeKind::Object,
-            union_members: vec![],
+                kind: graphql_codegen_rust::parser::TypeKind::Object,
+                union_members: vec![],
                 name: format!("Type{}", i),
                 fields,
                 description: Some(format!("Type {} description", i)),
@@ -685,8 +718,8 @@ async fn test_fuzz_schema_generation() {
             types.insert(
                 type_name,
                 ParsedType {
-            kind: graphql_codegen_rust::parser::TypeKind::Object,
-            union_members: vec![],
+                    kind: graphql_codegen_rust::parser::TypeKind::Object,
+                    union_members: vec![],
                     name: format!("Type{}", i),
                     fields,
                     description: Some(format!("Random type {}", i)),
@@ -781,8 +814,8 @@ async fn test_multi_database_support() {
         types.insert(
             "Test".to_string(),
             ParsedType {
-            kind: graphql_codegen_rust::parser::TypeKind::Object,
-            union_members: vec![],
+                kind: graphql_codegen_rust::parser::TypeKind::Object,
+                union_members: vec![],
                 name: "Test".to_string(),
                 fields: vec![ParsedField {
                     name: "id".to_string(),

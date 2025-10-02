@@ -182,8 +182,12 @@ pub fn is_foreign_key_field(field: &ParsedField) -> Option<String> {
         // Remove "Id" suffix and convert to PascalCase
         let related_type_base = &field_name[..field_name.len() - 2];
         // Capitalize first letter to get the type name
-        let related_type = related_type_base.chars().next().map(|c| c.to_uppercase().to_string())
-            .unwrap_or_default() + &related_type_base[1..];
+        let related_type = related_type_base
+            .chars()
+            .next()
+            .map(|c| c.to_uppercase().to_string())
+            .unwrap_or_default()
+            + &related_type_base[1..];
         return Some(related_type);
     }
 
@@ -197,7 +201,9 @@ pub fn is_foreign_key_field(field: &ParsedField) -> Option<String> {
 }
 
 /// Detect relationships between types in the schema
-pub fn detect_relationships(schema: &crate::parser::ParsedSchema) -> HashMap<String, Vec<Relationship>> {
+pub fn detect_relationships(
+    schema: &crate::parser::ParsedSchema,
+) -> HashMap<String, Vec<Relationship>> {
     let mut relationships = HashMap::new();
 
     for (type_name, parsed_type) in &schema.types {

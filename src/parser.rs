@@ -86,8 +86,8 @@ impl GraphQLParser {
     pub fn parse_from_sdl(&self, sdl: &str) -> anyhow::Result<ParsedSchema> {
         use graphql_parser::parse_schema;
 
-        let document = parse_schema(sdl)
-            .map_err(|e| anyhow::anyhow!("Failed to parse SDL: {}", e))?;
+        let document =
+            parse_schema(sdl).map_err(|e| anyhow::anyhow!("Failed to parse SDL: {}", e))?;
 
         self.parse_sdl_document(document)
     }
@@ -98,7 +98,10 @@ impl GraphQLParser {
         self.parse_from_sdl(sdl)
     }
 
-    fn parse_sdl_document<'a>(&self, document: graphql_parser::schema::Document<'a, &'a str>) -> anyhow::Result<ParsedSchema> {
+    fn parse_sdl_document<'a>(
+        &self,
+        document: graphql_parser::schema::Document<'a, &'a str>,
+    ) -> anyhow::Result<ParsedSchema> {
         let mut types = HashMap::new();
         let mut enums = HashMap::new();
         let mut scalars = Vec::new();
@@ -135,8 +138,8 @@ impl GraphQLParser {
                         }
                     }
                 }
-                graphql_parser::schema::Definition::SchemaDefinition(_) |
-                graphql_parser::schema::Definition::DirectiveDefinition(_) => {
+                graphql_parser::schema::Definition::SchemaDefinition(_)
+                | graphql_parser::schema::Definition::DirectiveDefinition(_) => {
                     // Skip schema and directive definitions for ORM generation
                 }
                 graphql_parser::schema::Definition::TypeExtension(_) => {
@@ -145,7 +148,11 @@ impl GraphQLParser {
             }
         }
 
-        Ok(ParsedSchema { types, enums, scalars })
+        Ok(ParsedSchema {
+            types,
+            enums,
+            scalars,
+        })
     }
 
     fn parse_schema(&self, schema: IntrospectionSchema) -> anyhow::Result<ParsedSchema> {
@@ -359,7 +366,10 @@ impl GraphQLParser {
     }
 
     // SDL parsing helper methods
-    fn parse_sdl_object_type<'a>(&self, obj: &graphql_parser::schema::ObjectType<'a, &'a str>) -> Option<ParsedType> {
+    fn parse_sdl_object_type<'a>(
+        &self,
+        obj: &graphql_parser::schema::ObjectType<'a, &'a str>,
+    ) -> Option<ParsedType> {
         let mut fields = Vec::new();
 
         for field in &obj.fields {
@@ -368,7 +378,9 @@ impl GraphQLParser {
             }
         }
 
-        let interfaces = obj.implements_interfaces.iter()
+        let interfaces = obj
+            .implements_interfaces
+            .iter()
             .map(|name| name.to_string())
             .collect();
 
@@ -382,7 +394,10 @@ impl GraphQLParser {
         })
     }
 
-    fn parse_sdl_interface_type<'a>(&self, interface: &graphql_parser::schema::InterfaceType<'a, &'a str>) -> Option<ParsedType> {
+    fn parse_sdl_interface_type<'a>(
+        &self,
+        interface: &graphql_parser::schema::InterfaceType<'a, &'a str>,
+    ) -> Option<ParsedType> {
         let mut fields = Vec::new();
 
         for field in &interface.fields {
@@ -391,7 +406,9 @@ impl GraphQLParser {
             }
         }
 
-        let interfaces = interface.implements_interfaces.iter()
+        let interfaces = interface
+            .implements_interfaces
+            .iter()
             .map(|name| name.to_string())
             .collect();
 
@@ -405,9 +422,14 @@ impl GraphQLParser {
         })
     }
 
-    fn parse_sdl_union_type<'a>(&self, union_def: &graphql_parser::schema::UnionType<'a, &'a str>) -> Option<ParsedType> {
+    fn parse_sdl_union_type<'a>(
+        &self,
+        union_def: &graphql_parser::schema::UnionType<'a, &'a str>,
+    ) -> Option<ParsedType> {
         // For unions, we store union members separately
-        let union_members = union_def.types.iter()
+        let union_members = union_def
+            .types
+            .iter()
             .map(|name| name.to_string())
             .collect();
 
@@ -421,8 +443,13 @@ impl GraphQLParser {
         })
     }
 
-    fn parse_sdl_enum_type<'a>(&self, enum_def: &graphql_parser::schema::EnumType<'a, &'a str>) -> Option<ParsedEnum> {
-        let values = enum_def.values.iter()
+    fn parse_sdl_enum_type<'a>(
+        &self,
+        enum_def: &graphql_parser::schema::EnumType<'a, &'a str>,
+    ) -> Option<ParsedEnum> {
+        let values = enum_def
+            .values
+            .iter()
             .map(|value| value.name.to_string())
             .collect();
 
@@ -433,7 +460,10 @@ impl GraphQLParser {
         })
     }
 
-    fn parse_sdl_field<'a>(&self, field: &graphql_parser::schema::Field<'a, &'a str>) -> Option<ParsedField> {
+    fn parse_sdl_field<'a>(
+        &self,
+        field: &graphql_parser::schema::Field<'a, &'a str>,
+    ) -> Option<ParsedField> {
         let (field_type, is_nullable, is_list) = self.parse_sdl_type(&field.field_type)?;
 
         Some(ParsedField {
@@ -445,11 +475,16 @@ impl GraphQLParser {
         })
     }
 
-    fn parse_sdl_type<'a>(&self, field_type: &graphql_parser::schema::Type<'a, &'a str>) -> Option<(FieldType, bool, bool)> {
+    fn parse_sdl_type<'a>(
+        &self,
+        field_type: &graphql_parser::schema::Type<'a, &'a str>,
+    ) -> Option<(FieldType, bool, bool)> {
         match field_type {
             graphql_parser::schema::Type::NamedType(name) => {
                 let field_type = match *name {
-                    "ID" | "String" | "Int" | "Float" | "Boolean" => FieldType::Scalar(name.to_string()),
+                    "ID" | "String" | "Int" | "Float" | "Boolean" => {
+                        FieldType::Scalar(name.to_string())
+                    }
                     _ => FieldType::Reference(name.to_string()),
                 };
                 Some((field_type, true, false)) // Named types are nullable by default
