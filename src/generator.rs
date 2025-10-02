@@ -172,3 +172,74 @@ pub fn sql_type_for_field(
         crate::parser::FieldType::Enum(_) => "TEXT".to_string(),
     }
 }
+
+/// Detect if a field is likely a foreign key relationship
+pub fn is_foreign_key_field(field: &ParsedField) -> Option<String> {
+    let field_name = &field.name;
+
+    // Common foreign key patterns
+    if field_name.ends_with("Id") && field_name.len() > 2 {
+        // Remove "Id" suffix and convert to PascalCase
+        let related_type = &field_name[..field_name.len() - 2];
+        if related_type.chars().next()?.is_uppercase() {
+            return Some(related_type.to_string());
+        }
+    }
+
+    if field_name == "id" && matches!(field.field_type, crate::parser::FieldType::Reference(_)) {
+        // For fields named "id" that are references, we can't determine the related type
+        // This would need more context from the schema
+        return None;
+    }
+
+    None
+}
+
+/// Detect relationships between types in the schema
+pub fn detect_relationships(schema: &crate::parser::ParsedSchema) -> HashMap<String, Vec<Relationship>> {
+    let mut relationships = HashMap::new();
+
+    for (type_name, parsed_type) in &schema.types {
+        if !matches!(parsed_type.kind, crate::parser::TypeKind::Object) {
+            continue;
+        }
+
+        let mut type_relationships = Vec::new();
+
+        for field in &parsed_type.fields {
+            if let Some(related_type) = is_foreign_key_field(field) {
+                // Check if the related type exists in the schema
+                if schema.types.contains_key(&related_type) {
+                    let relationship = Relationship {
+                        field_name: field.name.clone(),
+                        related_type: related_type.clone(),
+                        relationship_type: RelationshipType::BelongsTo,
+                        foreign_key: true,
+                    };
+                    type_relationships.push(relationship);
+                }
+            }
+        }
+
+        if !type_relationships.is_empty() {
+            relationships.insert(type_name.clone(), type_relationships);
+        }
+    }
+
+    relationships
+}
+
+#[derive(Debug, Clone)]
+pub struct Relationship {
+    pub field_name: String,
+    pub related_type: String,
+    pub relationship_type: RelationshipType,
+    pub foreign_key: bool,
+}
+
+#[derive(Debug, Clone)]
+pub enum RelationshipType {
+    BelongsTo,
+    HasMany,
+    HasOne,
+}
