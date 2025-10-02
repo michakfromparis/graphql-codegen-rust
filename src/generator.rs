@@ -180,10 +180,11 @@ pub fn is_foreign_key_field(field: &ParsedField) -> Option<String> {
     // Common foreign key patterns
     if field_name.ends_with("Id") && field_name.len() > 2 {
         // Remove "Id" suffix and convert to PascalCase
-        let related_type = &field_name[..field_name.len() - 2];
-        if related_type.chars().next()?.is_uppercase() {
-            return Some(related_type.to_string());
-        }
+        let related_type_base = &field_name[..field_name.len() - 2];
+        // Capitalize first letter to get the type name
+        let related_type = related_type_base.chars().next().map(|c| c.to_uppercase().to_string())
+            .unwrap_or_default() + &related_type_base[1..];
+        return Some(related_type);
     }
 
     if field_name == "id" && matches!(field.field_type, crate::parser::FieldType::Reference(_)) {
