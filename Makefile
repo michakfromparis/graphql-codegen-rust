@@ -28,6 +28,7 @@ install-deps:
 	cargo install cargo-audit --version 0.21.2 || echo "cargo-audit already installed"
 	cargo install cargo-deny --version 0.18.3 || echo "cargo-deny already installed"
 	cargo install cargo-llvm-cov || echo "cargo-llvm-cov already installed"
+	cargo install cargo-bump --version 1.1.0 || echo "cargo-bump already installed"
 	@echo "✅ Development dependencies installed"
 
 # Code formatting
@@ -148,6 +149,9 @@ test-all: test
 .PHONY: release-prep
 release-prep: all update audit license-check
 	@echo "✅ Release preparation complete"
+	@echo "Prerequisites:"
+	@echo "- Create 'release' environment in GitHub Settings > Environments"
+	@echo "- Set CRATES_IO_TOKEN secret in the release environment"
 	@echo "Next steps:"
 	@echo "1. Update version in Cargo.toml"
 	@echo "2. Update CHANGELOG.md"
@@ -158,7 +162,7 @@ release-prep: all update audit license-check
 .PHONY: release-check
 release-check: ci
 	@echo "Running release checks..."
-	cargo package --allow-dirty --no-verify
+	cargo package --allow-dirty
 	@echo "✅ Release package validation passed"
 
 # Version management
