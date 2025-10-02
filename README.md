@@ -1,6 +1,6 @@
-# GraphQL Diesel Sync
+# GraphQL Rust Codegen
 
-A Rust CLI tool that automates the synchronization of remote GraphQL schemas with local Diesel or Sea-ORM databases. Perfect for offline-first Tauri applications that need to sync GraphQL types to local SQLite/PostgreSQL databases.
+A Rust CLI tool that generates ORM code from GraphQL schemas. Perfect for offline-first Tauri applications that need to sync GraphQL types to local SQLite/PostgreSQL databases.
 
 ## Features
 
@@ -8,31 +8,40 @@ A Rust CLI tool that automates the synchronization of remote GraphQL schemas wit
 - **Multi-ORM Support**: Generates code for both Diesel and Sea-ORM
 - **Database Support**: Works with SQLite (default), PostgreSQL, and MySQL
 - **Migration Generation**: Automatically creates SQL migration files
-- **Configuration Management**: TOML-based configuration for custom mappings
+- **Configuration Management**: Supports both TOML and YAML configs (compatible with GraphQL Code Generator)
 - **Type Safety**: Generates strongly-typed Rust structs from GraphQL schemas
+- **Tauri Integration**: Designed for seamless integration with Tauri app build processes
 
 ## Installation
 
 ### From Source
 
 ```bash
-git clone https://github.com/yourusername/graphql-diesel-sync.git
-cd graphql-diesel-sync
+git clone https://github.com/yourusername/graphql-rust-codegen.git
+cd graphql-rust-codegen
 cargo build --release
 ```
 
 ### From Crates.io (future)
 
 ```bash
-cargo install graphql-diesel-sync
+cargo install graphql-rust-codegen
 ```
 
 ## Usage
 
+### Simple Code Generation (Auto-detects config)
+
+```bash
+graphql-rust-codegen
+```
+
+Automatically detects `codegen.yml`, `codegen.yaml`, or `graphql-rust-codegen.toml` and generates code.
+
 ### Initialize a New Project
 
 ```bash
-graphql-diesel-sync init \
+graphql-rust-codegen init \
   --url https://api.example.com/graphql \
   --orm diesel \
   --db sqlite \
@@ -41,28 +50,60 @@ graphql-diesel-sync init \
 
 This will:
 1. Introspect the GraphQL schema from the endpoint
-2. Create a configuration file (`graphql-diesel-sync.toml`)
+2. Create a configuration file (`graphql-rust-codegen.toml`)
 3. Generate Diesel schema definitions, entity structs, and migration files
 
-### Regenerate Code
+### Explicit Code Generation
 
 ```bash
-graphql-diesel-sync generate
+graphql-rust-codegen generate --config codegen.yml
 ```
 
-Regenerates code from the existing configuration, useful when the remote schema has changed.
+Regenerates code from the specified configuration file.
 
-### Generate Specific Types
+### Tauri Integration
 
-```bash
-graphql-diesel-sync generate --types User,Product,Order
+In your `package.json`, chain with TS codegen:
+
+```json
+{
+  "scripts": {
+    "codegen": "graphql-codegen --config codegen.yml && graphql-rust-codegen"
+  }
+}
 ```
 
-Only generates code for the specified GraphQL types.
+This runs TS codegen first, then Rust codegen automatically.
 
 ## Configuration
 
-The tool creates a `graphql-diesel-sync.toml` configuration file:
+The tool supports both TOML and YAML configurations. YAML configs are compatible with GraphQL Code Generator.
+
+### YAML Configuration (Recommended for Tauri apps)
+
+```yaml
+# Compatible with GraphQL Code Generator
+schema: https://api.example.com/graphql
+
+# Optional: additional headers
+# headers:
+#   Authorization: "Bearer your-token-here"
+
+# Rust codegen specific configuration
+rust_codegen:
+  orm: diesel
+  db: sqlite
+  output_dir: ./generated
+  generate_migrations: true
+  generate_entities: true
+  table_naming: snake_case
+
+  # Custom scalar mappings
+  type_mappings:
+    DateTime: "chrono::NaiveDateTime"
+```
+
+### TOML Configuration
 
 ```toml
 url = "https://api.example.com/graphql"
@@ -85,10 +126,10 @@ DateTime = "chrono::NaiveDateTime"
 
 ```
 output_dir/
-├── graphql-diesel-sync.toml
+├── graphql-rust-codegen.toml  # or codegen.yml
 ├── src/
-│   ├── schema.rs          # Diesel table! macros
-│   └── entities/          # Entity structs
+│   ├── schema.rs              # Diesel table! macros
+│   └── entities/              # Entity structs
 │       ├── user.rs
 │       └── product.rs
 └── migrations/
@@ -115,7 +156,7 @@ output_dir/
 ### Vendure Integration
 
 ```bash
-graphql-diesel-sync init \
+graphql-rust-codegen init \
   --url https://demo.vendure.io/shop-api \
   --orm diesel \
   --db sqlite \
@@ -124,15 +165,24 @@ graphql-diesel-sync init \
 
 ### Tauri App Integration
 
-Add to your `build.rs`:
+Add to your `package.json`:
+
+```json
+{
+  "scripts": {
+    "codegen": "graphql-codegen --config codegen.yml && graphql-rust-codegen"
+  }
+}
+```
+
+Or in `build.rs`:
 
 ```rust
 use std::process::Command;
 
 fn main() {
     // Regenerate database code before build
-    Command::new("graphql-diesel-sync")
-        .arg("generate")
+    Command::new("graphql-rust-codegen")
         .status()
         .expect("Failed to regenerate database code");
 
@@ -160,6 +210,12 @@ cargo test
 cargo run -- init --url http://localhost:4000/graphql
 ```
 
+### With YAML Support
+
+```bash
+cargo run --features yaml-codegen-config -- init --url http://localhost:4000/graphql
+```
+
 ## Limitations
 
 - Currently focuses on object types and basic relationships
@@ -183,6 +239,7 @@ MIT License
 
 ## Roadmap
 
+- [x] YAML configuration support (compatible with GraphQL Code Generator)
 - [ ] SDL file parsing support
 - [ ] Union and interface type generation
 - [ ] Advanced relationship mapping
