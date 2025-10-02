@@ -1,5 +1,7 @@
 # GraphQL Rust Codegen
 
+**The missing piece for offline-first applications** 🚀
+
 A Rust CLI tool that generates ORM code from GraphQL schemas. Perfect for offline-first Tauri applications that need to sync GraphQL types to local SQLite/PostgreSQL databases.
 
 ## Features
@@ -369,10 +371,12 @@ MIT License
 ## Roadmap
 
 - [x] YAML configuration support (compatible with GraphQL Code Generator)
-- [ ] SDL file parsing support
-- [ ] Union and interface type generation
-- [ ] Advanced relationship mapping
+- [x] SDL file parsing support
+- [x] Union and interface type generation
+- [x] Basic relationship mapping (foreign key detection)
 - [x] Sea-ORM migration generation
+- [ ] Many-to-many relationship support
+- [ ] Polymorphic association support
 - [ ] Plugin system
 - [ ] GraphQL subscription support
 - [ ] CI/CD and releases
