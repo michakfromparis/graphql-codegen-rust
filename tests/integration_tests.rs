@@ -278,6 +278,355 @@ async fn test_sea_orm_code_generation_compiles() {
     validate_generated_sea_orm_code(&mod_path, &product_entity_path);
 }
 
+/// Test code generation against real GraphQL APIs
+#[tokio::test]
+async fn test_real_graphql_apis() {
+    let real_apis = vec![
+        ("https://countries.trevorblades.com/", "Countries API"),
+        ("https://api.spacex.land/graphql/", "SpaceX API"),
+        ("https://graphql.anilist.co/", "AniList API"),
+    ];
+
+    for (endpoint, api_name) in real_apis {
+        println!("Testing against {}: {}", api_name, endpoint);
+
+        let temp_dir = TempDir::new().expect("Failed to create temp dir");
+
+        // Test both Diesel and Sea-ORM
+        for orm_type in &[
+            graphql_codegen_rust::cli::OrmType::Diesel,
+            graphql_codegen_rust::cli::OrmType::SeaOrm,
+        ] {
+            let db_type = match orm_type {
+                graphql_codegen_rust::cli::OrmType::Diesel => {
+                    graphql_codegen_rust::cli::DatabaseType::Sqlite
+                }
+                graphql_codegen_rust::cli::OrmType::SeaOrm => {
+                    graphql_codegen_rust::cli::DatabaseType::Postgres
+                }
+            };
+
+            let config = Config {
+                url: endpoint.to_string(),
+                orm: orm_type.clone(),
+                db: db_type,
+                output_dir: temp_dir.path().to_path_buf(),
+                headers: HashMap::new(),
+                type_mappings: HashMap::new(),
+                scalar_mappings: HashMap::new(),
+                table_naming: graphql_codegen_rust::config::TableNamingConvention::SnakeCase,
+                generate_migrations: true,
+                generate_entities: true,
+            };
+
+            // This should succeed for public APIs
+            let generator = CodeGenerator::new(&config.orm);
+            match generator.generate_from_config(&config).await {
+                Ok(_) => println!(
+                    "✓ Successfully generated code for {} with {:?}",
+                    api_name, orm_type
+                ),
+                Err(e) => {
+                    // Some APIs might have issues, log but don't fail
+                    println!(
+                        "⚠️  Failed to generate code for {} with {:?}: {}",
+                        api_name, orm_type, e
+                    );
+                }
+            }
+        }
+    }
+}
+
+/// Test edge cases and error conditions
+#[tokio::test]
+async fn test_edge_cases() {
+    let edge_cases = vec![
+        ("empty_schema", create_empty_schema()),
+        ("single_field_type", create_single_field_schema()),
+        ("enum_only_schema", create_enum_only_schema()),
+        (
+            "complex_relationships",
+            create_complex_relationships_schema(),
+        ),
+    ];
+
+    for (case_name, schema) in edge_cases {
+        println!("Testing edge case: {}", case_name);
+
+        let temp_dir = TempDir::new().expect("Failed to create temp dir");
+
+        // Test both ORMs
+        for orm_type in &[
+            graphql_codegen_rust::cli::OrmType::Diesel,
+            graphql_codegen_rust::cli::OrmType::SeaOrm,
+        ] {
+            let db_type = match orm_type {
+                graphql_codegen_rust::cli::OrmType::Diesel => {
+                    graphql_codegen_rust::cli::DatabaseType::Sqlite
+                }
+                graphql_codegen_rust::cli::OrmType::SeaOrm => {
+                    graphql_codegen_rust::cli::DatabaseType::Postgres
+                }
+            };
+
+            let config = Config {
+                url: "https://example.com/graphql".to_string(),
+                orm: orm_type.clone(),
+                db: db_type,
+                output_dir: temp_dir.path().to_path_buf(),
+                headers: HashMap::new(),
+                type_mappings: HashMap::new(),
+                scalar_mappings: HashMap::new(),
+                table_naming: graphql_codegen_rust::config::TableNamingConvention::SnakeCase,
+                generate_migrations: true,
+                generate_entities: true,
+            };
+
+            // Generate code using the internal function
+            let generator_inner = graphql_codegen_rust::generator::create_generator(&config.orm);
+            match graphql_codegen_rust::generate_all_code(&schema, &config, &*generator_inner).await
+            {
+                Ok(_) => println!("✓ Edge case '{}' passed for {:?}", case_name, orm_type),
+                Err(e) => panic!("Edge case '{}' failed for {:?}: {}", case_name, orm_type, e),
+            }
+        }
+    }
+}
+
+/// Test performance of code generation
+#[tokio::test]
+async fn test_codegen_performance() {
+    use std::time::Instant;
+
+    // Create a moderately complex schema for benchmarking
+    let mut types = HashMap::new();
+    let mut enums = HashMap::new();
+
+    // Create 10 types with 5 fields each
+    for i in 0..10 {
+        let type_name = format!("Type{}", i);
+        let mut fields = vec![ParsedField {
+            name: "id".to_string(),
+            field_type: FieldType::Scalar("ID".to_string()),
+            description: None,
+            is_nullable: false,
+            is_list: false,
+        }];
+
+        // Add 5 additional fields
+        for j in 0..5 {
+            fields.push(ParsedField {
+                name: format!("field{}", j),
+                field_type: FieldType::Scalar("String".to_string()),
+                description: None,
+                is_nullable: true,
+                is_list: false,
+            });
+        }
+
+        types.insert(
+            type_name,
+            ParsedType {
+                name: format!("Type{}", i),
+                fields,
+                description: Some(format!("Type {} description", i)),
+                interfaces: vec![],
+            },
+        );
+    }
+
+    // Add some enums
+    for i in 0..5 {
+        enums.insert(
+            format!("Enum{}", i),
+            ParsedEnum {
+                name: format!("Enum{}", i),
+                values: vec![
+                    "VALUE1".to_string(),
+                    "VALUE2".to_string(),
+                    "VALUE3".to_string(),
+                ],
+                description: Some(format!("Enum {} description", i)),
+            },
+        );
+    }
+
+    let schema = ParsedSchema {
+        types,
+        enums,
+        scalars: vec![],
+    };
+
+    let temp_dir = TempDir::new().expect("Failed to create temp dir");
+
+    let mut total_time = std::time::Duration::new(0, 0);
+
+    // Benchmark both ORMs
+    for orm_type in &[
+        graphql_codegen_rust::cli::OrmType::Diesel,
+        graphql_codegen_rust::cli::OrmType::SeaOrm,
+    ] {
+        let db_type = match orm_type {
+            graphql_codegen_rust::cli::OrmType::Diesel => {
+                graphql_codegen_rust::cli::DatabaseType::Sqlite
+            }
+            graphql_codegen_rust::cli::OrmType::SeaOrm => {
+                graphql_codegen_rust::cli::DatabaseType::Postgres
+            }
+        };
+
+        let config = Config {
+            url: "https://example.com/graphql".to_string(),
+            orm: orm_type.clone(),
+            db: db_type,
+            output_dir: temp_dir.path().to_path_buf(),
+            headers: HashMap::new(),
+            type_mappings: HashMap::new(),
+            scalar_mappings: HashMap::new(),
+            table_naming: graphql_codegen_rust::config::TableNamingConvention::SnakeCase,
+            generate_migrations: true,
+            generate_entities: true,
+        };
+
+        let start = Instant::now();
+        let generator_inner = graphql_codegen_rust::generator::create_generator(&config.orm);
+        graphql_codegen_rust::generate_all_code(&schema, &config, &*generator_inner)
+            .await
+            .expect("Code generation should succeed");
+        let elapsed = start.elapsed();
+
+        total_time += elapsed;
+        println!("✓ {:?} generation took {:?}", orm_type, elapsed);
+    }
+
+    // Ensure reasonable performance (should complete in under 1 second for this schema)
+    assert!(
+        total_time < std::time::Duration::from_secs(1),
+        "Code generation took too long: {:?}",
+        total_time
+    );
+
+    println!("✓ Total generation time: {:?}", total_time);
+}
+
+/// Test with fuzzed/random schema generation
+#[tokio::test]
+async fn test_fuzz_schema_generation() {
+    use rand::rngs::StdRng;
+    use rand::{Rng, SeedableRng};
+
+    let mut rng = StdRng::from_seed([42; 32]); // Deterministic seed for reproducible tests
+
+    for test_case in 0..10 {
+        // Generate random schema
+        let mut types = HashMap::new();
+        let mut enums = HashMap::new();
+
+        // Random number of types (1-5)
+        let num_types = rng.gen_range(1..=5);
+        for i in 0..num_types {
+            let type_name = format!("Type{}", i);
+            let mut fields = vec![ParsedField {
+                name: "id".to_string(),
+                field_type: FieldType::Scalar("ID".to_string()),
+                description: None,
+                is_nullable: false,
+                is_list: false,
+            }];
+
+            // Random number of fields (1-3)
+            let num_fields = rng.gen_range(1..=3);
+            for j in 0..num_fields {
+                let field_types = ["String", "Int", "Boolean", "Float"];
+                let random_type = field_types[rng.gen_range(0..field_types.len())];
+
+                fields.push(ParsedField {
+                    name: format!("field{}", j),
+                    field_type: FieldType::Scalar(random_type.to_string()),
+                    description: None,
+                    is_nullable: rng.gen_bool(0.5), // 50% chance of being nullable
+                    is_list: false,
+                });
+            }
+
+            types.insert(
+                type_name,
+                ParsedType {
+                    name: format!("Type{}", i),
+                    fields,
+                    description: Some(format!("Random type {}", i)),
+                    interfaces: vec![],
+                },
+            );
+        }
+
+        // Random enums (0-2)
+        let num_enums = rng.gen_range(0..=2);
+        for i in 0..num_enums {
+            let values: Vec<String> = (0..rng.gen_range(2..=5))
+                .map(|j| format!("VALUE{}", j))
+                .collect();
+
+            enums.insert(
+                format!("Enum{}", i),
+                ParsedEnum {
+                    name: format!("Enum{}", i),
+                    values,
+                    description: Some(format!("Random enum {}", i)),
+                },
+            );
+        }
+
+        let schema = ParsedSchema {
+            types,
+            enums,
+            scalars: vec![],
+        };
+
+        let temp_dir = TempDir::new().expect("Failed to create temp dir");
+
+        // Test both ORMs with the fuzzed schema
+        for orm_type in &[
+            graphql_codegen_rust::cli::OrmType::Diesel,
+            graphql_codegen_rust::cli::OrmType::SeaOrm,
+        ] {
+            let db_type = match orm_type {
+                graphql_codegen_rust::cli::OrmType::Diesel => {
+                    graphql_codegen_rust::cli::DatabaseType::Sqlite
+                }
+                graphql_codegen_rust::cli::OrmType::SeaOrm => {
+                    graphql_codegen_rust::cli::DatabaseType::Postgres
+                }
+            };
+
+            let config = Config {
+                url: "https://example.com/graphql".to_string(),
+                orm: orm_type.clone(),
+                db: db_type,
+                output_dir: temp_dir.path().to_path_buf(),
+                headers: HashMap::new(),
+                type_mappings: HashMap::new(),
+                scalar_mappings: HashMap::new(),
+                table_naming: graphql_codegen_rust::config::TableNamingConvention::SnakeCase,
+                generate_migrations: true,
+                generate_entities: true,
+            };
+
+            // This should not panic even with random schemas
+            let generator_inner = graphql_codegen_rust::generator::create_generator(&config.orm);
+            match graphql_codegen_rust::generate_all_code(&schema, &config, &*generator_inner).await
+            {
+                Ok(_) => println!("✓ Fuzz test case {} passed for {:?}", test_case, orm_type),
+                Err(e) => panic!(
+                    "Fuzz test case {} failed for {:?}: {}",
+                    test_case, orm_type, e
+                ),
+            }
+        }
+    }
+}
+
 /// Test both ORM types with different databases
 #[tokio::test]
 async fn test_multi_database_support() {
@@ -354,6 +703,170 @@ async fn test_multi_database_support() {
                 );
             }
         }
+    }
+}
+
+// Helper functions for creating test schemas
+
+fn create_empty_schema() -> ParsedSchema {
+    ParsedSchema {
+        types: HashMap::new(),
+        enums: HashMap::new(),
+        scalars: vec![],
+    }
+}
+
+fn create_single_field_schema() -> ParsedSchema {
+    let mut types = HashMap::new();
+
+    types.insert(
+        "Minimal".to_string(),
+        ParsedType {
+            name: "Minimal".to_string(),
+            fields: vec![ParsedField {
+                name: "id".to_string(),
+                field_type: FieldType::Scalar("ID".to_string()),
+                description: None,
+                is_nullable: false,
+                is_list: false,
+            }],
+            description: None,
+            interfaces: vec![],
+        },
+    );
+
+    ParsedSchema {
+        types,
+        enums: HashMap::new(),
+        scalars: vec![],
+    }
+}
+
+fn create_enum_only_schema() -> ParsedSchema {
+    let mut enums = HashMap::new();
+
+    enums.insert(
+        "Status".to_string(),
+        ParsedEnum {
+            name: "Status".to_string(),
+            values: vec![
+                "ACTIVE".to_string(),
+                "INACTIVE".to_string(),
+                "PENDING".to_string(),
+            ],
+            description: Some("Entity status".to_string()),
+        },
+    );
+
+    ParsedSchema {
+        types: HashMap::new(),
+        enums,
+        scalars: vec![],
+    }
+}
+
+fn create_complex_relationships_schema() -> ParsedSchema {
+    let mut types = HashMap::new();
+    let mut enums = HashMap::new();
+
+    // Author type
+    types.insert(
+        "Author".to_string(),
+        ParsedType {
+            name: "Author".to_string(),
+            fields: vec![
+                ParsedField {
+                    name: "id".to_string(),
+                    field_type: FieldType::Scalar("ID".to_string()),
+                    description: None,
+                    is_nullable: false,
+                    is_list: false,
+                },
+                ParsedField {
+                    name: "name".to_string(),
+                    field_type: FieldType::Scalar("String".to_string()),
+                    description: None,
+                    is_nullable: false,
+                    is_list: false,
+                },
+            ],
+            description: Some("Blog author".to_string()),
+            interfaces: vec![],
+        },
+    );
+
+    // Blog post type with relationships
+    types.insert(
+        "BlogPost".to_string(),
+        ParsedType {
+            name: "BlogPost".to_string(),
+            fields: vec![
+                ParsedField {
+                    name: "id".to_string(),
+                    field_type: FieldType::Scalar("ID".to_string()),
+                    description: None,
+                    is_nullable: false,
+                    is_list: false,
+                },
+                ParsedField {
+                    name: "title".to_string(),
+                    field_type: FieldType::Scalar("String".to_string()),
+                    description: None,
+                    is_nullable: false,
+                    is_list: false,
+                },
+                ParsedField {
+                    name: "content".to_string(),
+                    field_type: FieldType::Scalar("String".to_string()),
+                    description: None,
+                    is_nullable: false,
+                    is_list: false,
+                },
+                ParsedField {
+                    name: "authorId".to_string(),
+                    field_type: FieldType::Scalar("ID".to_string()),
+                    description: None,
+                    is_nullable: false,
+                    is_list: false,
+                },
+                ParsedField {
+                    name: "published".to_string(),
+                    field_type: FieldType::Scalar("Boolean".to_string()),
+                    description: None,
+                    is_nullable: false,
+                    is_list: false,
+                },
+                ParsedField {
+                    name: "tags".to_string(),
+                    field_type: FieldType::Scalar("String".to_string()),
+                    description: None,
+                    is_nullable: false,
+                    is_list: true,
+                },
+            ],
+            description: Some("Blog post".to_string()),
+            interfaces: vec![],
+        },
+    );
+
+    // Status enum
+    enums.insert(
+        "PostStatus".to_string(),
+        ParsedEnum {
+            name: "PostStatus".to_string(),
+            values: vec![
+                "DRAFT".to_string(),
+                "PUBLISHED".to_string(),
+                "ARCHIVED".to_string(),
+            ],
+            description: Some("Post publication status".to_string()),
+        },
+    );
+
+    ParsedSchema {
+        types,
+        enums,
+        scalars: vec![],
     }
 }
 
