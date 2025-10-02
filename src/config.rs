@@ -4,7 +4,6 @@ use std::path::PathBuf;
 
 use crate::cli::{DatabaseType, OrmType};
 
-
 /// YAML configuration format compatible with GraphQL Code Generator
 #[cfg(feature = "yaml-codegen-config")]
 #[derive(Debug, Clone, Serialize, Deserialize)]
