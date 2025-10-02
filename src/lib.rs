@@ -1,18 +1,60 @@
-//! GraphQL to Rust ORM Code Generator
+//! # GraphQL Code Generator for Rust ORMs
 //!
-//! This library provides functionality to generate Rust ORM code (Diesel or Sea-ORM)
-//! from GraphQL schema introspection.
+//! Transform GraphQL schemas into production-ready Rust code for Diesel and Sea-ORM.
+//! Automatically generates entities, migrations, and schema definitions from your
+//! GraphQL API's introspection.
 //!
-//! # Example
+//! ## Key Features
+//!
+//! - **Dual ORM Support**: Generate code for both [Diesel](https://diesel.rs) and [Sea-ORM](https://www.sea-ql.org/SeaORM)
+//! - **Database Agnostic**: Support for SQLite, PostgreSQL, and MySQL
+//! - **Type Safety**: Compile-time guarantees with full GraphQL type mapping
+//! - **Migration Ready**: Automatic database migration generation
+//! - **Introspection Powered**: Works with any GraphQL API that supports introspection
+//! - **Flexible Configuration**: TOML and YAML config support (with feature flag)
+//!
+//! ## Quick Start
+//!
+//! ### 1. Install the CLI
+//!
+//! ```bash
+//! cargo install graphql-codegen-rust
+//! ```
+//!
+//! ### 2. Initialize your project
+//!
+//! ```bash
+//! graphql-codegen-rust init --url https://api.example.com/graphql
+//! ```
+//!
+//! ### 3. Generate code
+//!
+//! ```bash
+//! graphql-codegen-rust generate
+//! ```
+//!
+//! ## Library Usage
+//!
+//! For programmatic use in your Rust applications:
 //!
 //! ```rust,no_run
 //! use graphql_codegen_rust::{CodeGenerator, Config};
-//! use std::path::PathBuf;
+//! use graphql_codegen_rust::cli::{OrmType, DatabaseType};
 //!
 //! # async fn example() -> anyhow::Result<()> {
-//! // Load configuration
-//! let config_path = PathBuf::from("codegen.yml");
-//! let config = Config::from_file(&config_path)?;
+//! // Create configuration programmatically
+//! let config = Config {
+//!     url: "https://api.example.com/graphql".to_string(),
+//!     orm: OrmType::Diesel,
+//!     db: DatabaseType::Postgres,
+//!     output_dir: "./generated".into(),
+//!     headers: std::collections::HashMap::new(),
+//!     type_mappings: std::collections::HashMap::new(),
+//!     scalar_mappings: std::collections::HashMap::new(),
+//!     table_naming: Default::default(),
+//!     generate_migrations: true,
+//!     generate_entities: true,
+//! };
 //!
 //! // Generate code
 //! let generator = CodeGenerator::new(&config.orm);
@@ -20,6 +62,74 @@
 //! # Ok(())
 //! # }
 //! ```
+//!
+//! ## Configuration
+//!
+//! ### TOML Configuration (`graphql-codegen-rust.toml`)
+//!
+//! ```toml
+//! url = "https://api.example.com/graphql"
+//! orm = "Diesel"
+//! db = "Postgres"
+//! output_dir = "./generated"
+//!
+//! [headers]
+//! Authorization = "Bearer your-token-here"
+//!
+//! [type_mappings]
+//! # Custom type mappings if needed
+//! ```
+//!
+//! ### YAML Configuration (`codegen.yml`) - *Requires `yaml-codegen-config` feature*
+//!
+//! ```yaml
+//! schema:
+//!   url: https://api.example.com/graphql
+//!   headers:
+//!     Authorization: Bearer your-token-here
+//!
+//! rust_codegen:
+//!   orm: Diesel
+//!   db: Postgres
+//!   output_dir: ./generated
+//! ```
+//!
+//! ## Generated Code Structure
+//!
+//! ```text
+//! generated/
+//! ├── src/
+//! │   ├── schema.rs          # Diesel schema definitions
+//! │   ├── entities/
+//! │   │   ├── user.rs       # Entity structs and implementations
+//! │   │   └── post.rs
+//! │   └── mod.rs            # Sea-ORM module definitions
+//! └── migrations/
+//!     └── 0001_create_users_table/
+//!         ├── up.sql
+//!         └── down.sql
+//! ```
+//!
+//! ## Error Handling
+//!
+//! The library uses [`anyhow`](https://docs.rs/anyhow) for error handling, providing
+//! detailed error messages with context. Common error scenarios:
+//!
+//! - **Network errors**: GraphQL endpoint unreachable or authentication failures
+//! - **Schema errors**: Invalid GraphQL schema or introspection disabled
+//! - **Configuration errors**: Missing or invalid configuration files
+//! - **Generation errors**: Unsupported GraphQL types or ORM constraints
+//!
+//! ## Feature Flags
+//!
+//! - `yaml-codegen-config`: Enable YAML configuration file support
+//! - Default features include TOML support and both Diesel and Sea-ORM generators
+//!
+//! ## Requirements
+//!
+//! - Rust 1.70+
+//! - A GraphQL API that supports introspection
+//! - Appropriate database dependencies based on your ORM choice
 
 pub mod cli;
 pub mod config;
@@ -34,20 +144,105 @@ use std::path::Path;
 
 use fs_err as fs;
 
-/// Main code generator interface
+/// High-level interface for generating Rust ORM code from GraphQL schemas.
+///
+/// The `CodeGenerator` provides a unified API for generating code regardless of the
+/// underlying ORM (Diesel or Sea-ORM). It handles the complete code generation
+/// pipeline: schema introspection, parsing, and code emission.
+///
+/// ## ORM Support
+///
+/// - **Diesel**: Generates table schemas, entity structs, and database migrations
+/// - **Sea-ORM**: Generates entity models, active records, and migration files
+///
+/// ## Example
+///
+/// ```rust,no_run
+/// use graphql_codegen_rust::{CodeGenerator, Config};
+/// use graphql_codegen_rust::cli::{OrmType, DatabaseType};
+///
+/// # async fn example() -> anyhow::Result<()> {
+/// let config = Config {
+///     url: "https://api.example.com/graphql".to_string(),
+///     orm: OrmType::Diesel,
+///     db: DatabaseType::Postgres,
+///     output_dir: "./generated".into(),
+///     ..Default::default()
+/// };
+///
+/// let generator = CodeGenerator::new(&config.orm);
+/// generator.generate_from_config(&config).await?;
+/// # Ok(())
+/// # }
+/// ```
 pub struct CodeGenerator {
     inner: Box<dyn generator::CodeGenerator>,
 }
 
 impl CodeGenerator {
-    /// Create a new code generator for the specified ORM
+    /// Creates a new code generator for the specified ORM type.
+    ///
+    /// # Parameters
+    /// - `orm`: The ORM to generate code for (Diesel or Sea-ORM)
+    ///
+    /// # Returns
+    /// A configured `CodeGenerator` ready to produce ORM code.
+    ///
+    /// # Example
+    /// ```rust
+    /// use graphql_codegen_rust::{CodeGenerator, cli::OrmType};
+    ///
+    /// let generator = CodeGenerator::new(&OrmType::Diesel);
+    /// ```
     pub fn new(orm: &cli::OrmType) -> Self {
         Self {
             inner: generator::create_generator(orm),
         }
     }
 
-    /// Generate code from a configuration
+    /// Generates complete ORM code from a GraphQL configuration.
+    ///
+    /// This method orchestrates the full code generation pipeline:
+    /// 1. Introspects the GraphQL schema from the configured endpoint
+    /// 2. Parses the schema into an internal representation
+    /// 3. Generates ORM-specific code (entities, migrations, schemas)
+    /// 4. Writes generated files to the configured output directory
+    ///
+    /// # Parameters
+    /// - `config`: Complete configuration including GraphQL endpoint, ORM type,
+    ///   database settings, and output preferences
+    ///
+    /// # Returns
+    /// - `Ok(())` on successful code generation
+    /// - `Err(anyhow::Error)` with detailed context on failure
+    ///
+    /// # Errors
+    /// This method can fail due to:
+    /// - Network issues when accessing the GraphQL endpoint
+    /// - Authentication failures (invalid headers)
+    /// - Schema parsing errors (invalid GraphQL schema)
+    /// - File system errors (permission issues, disk space)
+    /// - Code generation constraints (unsupported GraphQL types)
+    ///
+    /// # Example
+    /// ```rust,no_run
+    /// use graphql_codegen_rust::{CodeGenerator, Config};
+    /// use graphql_codegen_rust::cli::{OrmType, DatabaseType};
+    ///
+    /// # async fn example() -> anyhow::Result<()> {
+    /// let config = Config {
+    ///     url: "https://api.example.com/graphql".to_string(),
+    ///     orm: OrmType::Diesel,
+    ///     db: DatabaseType::Postgres,
+    ///     output_dir: "./generated".into(),
+    ///     ..Default::default()
+    /// };
+    ///
+    /// let generator = CodeGenerator::new(&config.orm);
+    /// generator.generate_from_config(&config).await?;
+    /// # Ok(())
+    /// # }
+    /// ```
     pub async fn generate_from_config(&self, config: &Config) -> anyhow::Result<()> {
         // Fetch and parse schema
         let parser = parser::GraphQLParser::new();
@@ -60,7 +255,44 @@ impl CodeGenerator {
     }
 }
 
-/// Convenience function to generate code from a config file
+/// Generates ORM code directly from a configuration file path.
+///
+/// This is a convenience function that combines configuration loading and code generation
+/// into a single call. It automatically detects the configuration format (TOML or YAML)
+/// and creates the appropriate code generator.
+///
+/// # Supported Configuration Formats
+///
+/// - **TOML**: `graphql-codegen-rust.toml` or any `.toml` file
+/// - **YAML**: `codegen.yml`, `codegen.yaml` (requires `yaml-codegen-config` feature)
+///
+/// # Parameters
+/// - `config_path`: Path to the configuration file. Can be any type that converts to `Path`.
+///
+/// # Returns
+/// - `Ok(())` on successful code generation
+/// - `Err(anyhow::Error)` with context about what failed
+///
+/// # Errors
+/// This function can fail due to:
+/// - Configuration file not found or unreadable
+/// - Invalid configuration format or content
+/// - Network issues during GraphQL introspection
+/// - Code generation failures
+///
+/// # Example
+/// ```rust,no_run
+/// use graphql_codegen_rust::generate_from_config_file;
+///
+/// # async fn example() -> anyhow::Result<()> {
+/// // Generate from TOML config
+/// generate_from_config_file("graphql-codegen-rust.toml").await?;
+///
+/// // Generate from YAML config (if feature enabled)
+/// generate_from_config_file("codegen.yml").await?;
+/// # Ok(())
+/// # }
+/// ```
 pub async fn generate_from_config_file<P: AsRef<Path>>(config_path: P) -> anyhow::Result<()> {
     let path_buf = config_path.as_ref().to_path_buf();
     let config = Config::from_file(&path_buf)?;
