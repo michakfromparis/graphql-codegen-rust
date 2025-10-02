@@ -32,11 +32,5 @@ jobs:
     - name: Install cargo-deny
       run: cargo install cargo-deny --version 0.18.3
 
-    - name: Check licenses
-      run: cargo deny check licenses
-
-    - name: Check bans (duplicate dependencies)
-      run: cargo deny check bans
-
-    - name: Check security advisories
-      run: cargo deny check advisories
+    - name: Check license compliance
+      run: make license-check
