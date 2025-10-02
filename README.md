@@ -192,28 +192,111 @@ fn main() {
 
 ## Development
 
-### Building
+### Quick Start
+
+Use the provided Makefile for common development tasks:
 
 ```bash
+# Full development workflow (recommended)
+make dev
+
+# Or run individual tasks
+make test      # Run tests
+make lint      # Run clippy
+make fmt       # Format code
+make doc       # Build docs
+```
+
+### Available Commands
+
+See all available commands:
+```bash
+make help
+```
+
+### Manual Commands
+
+If you prefer running cargo directly:
+
+```bash
+# Building
 cargo build
-```
 
-### Testing
-
-```bash
+# Testing
 cargo test
-```
 
-### Running
-
-```bash
+# Running
 cargo run -- init --url http://localhost:4000/graphql
+
+# With YAML support
+cargo run --features yaml-codegen-config -- init --url http://localhost:4000/graphql
 ```
 
-### With YAML Support
+## CI/CD
+
+This project uses GitHub Actions for continuous integration and deployment:
+
+- **CI Pipeline**: Runs on every push/PR with comprehensive testing across multiple platforms (Linux, macOS, Windows) and Rust versions
+- **Code Quality**: Automated formatting checks and clippy linting with Rust Edition 2024
+- **Code Coverage**: Automated coverage reporting with Codecov
+- **Release Automation**: Automated publishing to crates.io when version tags are pushed
+- **Dependency Management**: Automated dependency updates via Dependabot
+- **Security Auditing**: Automated vulnerability scanning with `cargo-audit`
+- **License Checking**: Automated license compliance with `cargo-deny`
+- **Dependency Review**: Automated security scanning via GitHub's dependency review
+
+### Running Security Checks Locally
+
+All security and compliance checks work with the current MSRV (Rust 1.85+):
 
 ```bash
-cargo run --features yaml-codegen-config -- init --url http://localhost:4000/graphql
+# Security vulnerability scanning
+cargo install cargo-audit
+cargo audit
+
+# License and dependency compliance
+cargo install cargo-deny --version 0.18.3
+cargo deny check
+
+# Code coverage (requires llvm-tools)
+cargo install cargo-llvm-cov
+cargo llvm-cov --all-features --workspace
+```
+
+### Publishing a New Release
+
+Use the Makefile for streamlined release management:
+
+```bash
+# Prepare for release (run all checks)
+make release-prep
+
+# Bump version automatically (requires cargo-bump)
+make version-patch  # or version-minor / version-major
+
+# Or manual process:
+# 1. Update version in Cargo.toml
+# 2. Update CHANGELOG.md
+# 3. Commit changes
+# 4. Create and push version tag:
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+The release workflow will automatically:
+- Run full test suite
+- Build and verify package
+- Publish to crates.io
+- Create GitHub release
+
+### Available Release Commands
+
+```bash
+make release-prep    # Prepare for release (all checks)
+make release-check   # Validate release package
+make version-patch   # Bump patch version (1.0.0 -> 1.0.1)
+make version-minor   # Bump minor version (1.0.0 -> 1.1.0)
+make version-major   # Bump major version (1.0.0 -> 2.0.0)
 ```
 
 ## Limitations

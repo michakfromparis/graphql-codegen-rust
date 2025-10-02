@@ -2,7 +2,9 @@ use std::collections::HashMap;
 
 use crate::cli::DatabaseType;
 use crate::config::Config;
-use crate::generator::{sql_type_for_field, to_snake_case, CodeGenerator, MigrationFile, rust_type_for_field};
+use crate::generator::{
+    CodeGenerator, MigrationFile, rust_type_for_field, sql_type_for_field, to_snake_case,
+};
 use crate::parser::{ParsedEnum, ParsedSchema, ParsedType};
 
 pub struct SeaOrmGenerator;
@@ -13,6 +15,12 @@ impl SeaOrmGenerator {
     }
 }
 
+impl Default for SeaOrmGenerator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl CodeGenerator for SeaOrmGenerator {
     fn generate_schema(&self, _schema: &ParsedSchema, _config: &Config) -> anyhow::Result<String> {
         // Sea-ORM doesn't have a schema.rs equivalent like Diesel
@@ -20,7 +28,11 @@ impl CodeGenerator for SeaOrmGenerator {
         Ok("// Sea-ORM entities are defined in separate files\n".to_string())
     }
 
-    fn generate_entities(&self, schema: &ParsedSchema, config: &Config) -> anyhow::Result<HashMap<String, String>> {
+    fn generate_entities(
+        &self,
+        schema: &ParsedSchema,
+        config: &Config,
+    ) -> anyhow::Result<HashMap<String, String>> {
         let mut entities = HashMap::new();
 
         for (type_name, parsed_type) in &schema.types {
@@ -37,7 +49,11 @@ impl CodeGenerator for SeaOrmGenerator {
         Ok(entities)
     }
 
-    fn generate_migrations(&self, schema: &ParsedSchema, config: &Config) -> anyhow::Result<Vec<MigrationFile>> {
+    fn generate_migrations(
+        &self,
+        schema: &ParsedSchema,
+        config: &Config,
+    ) -> anyhow::Result<Vec<MigrationFile>> {
         let mut migrations = Vec::new();
 
         for (type_name, parsed_type) in &schema.types {
@@ -50,7 +66,12 @@ impl CodeGenerator for SeaOrmGenerator {
 }
 
 impl SeaOrmGenerator {
-    fn generate_entity_struct(&self, type_name: &str, parsed_type: &ParsedType, config: &Config) -> anyhow::Result<String> {
+    fn generate_entity_struct(
+        &self,
+        type_name: &str,
+        parsed_type: &ParsedType,
+        config: &Config,
+    ) -> anyhow::Result<String> {
         let _struct_name = type_name.to_string();
         let table_name = to_snake_case(type_name);
 
@@ -61,9 +82,11 @@ impl SeaOrmGenerator {
         output.push_str("use serde::{Deserialize, Serialize};\n\n");
 
         // Generate the entity struct
-        output.push_str("#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Deserialize, Serialize)]\n");
+        output.push_str(
+            "#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Deserialize, Serialize)]\n",
+        );
         output.push_str(&format!("#[sea_orm(table_name = \"{}\")]\n", table_name));
-        output.push_str(&format!("pub struct Model {{\n"));
+        output.push_str("pub struct Model {\n");
 
         for field in &parsed_type.fields {
             let field_name = to_snake_case(&field.name);
@@ -108,7 +131,11 @@ impl SeaOrmGenerator {
         Ok(output)
     }
 
-    fn generate_enum_type(&self, enum_name: &str, parsed_enum: &ParsedEnum) -> anyhow::Result<String> {
+    fn generate_enum_type(
+        &self,
+        enum_name: &str,
+        parsed_enum: &ParsedEnum,
+    ) -> anyhow::Result<String> {
         let mut output = String::new();
 
         if let Some(description) = &parsed_enum.description {
@@ -129,9 +156,18 @@ impl SeaOrmGenerator {
         Ok(output)
     }
 
-    fn generate_table_migration(&self, type_name: &str, parsed_type: &ParsedType, config: &Config) -> anyhow::Result<MigrationFile> {
+    fn generate_table_migration(
+        &self,
+        type_name: &str,
+        parsed_type: &ParsedType,
+        config: &Config,
+    ) -> anyhow::Result<MigrationFile> {
         let table_name = to_snake_case(type_name);
-        let migration_name = format!("m{}_create_{}_table", chrono::Utc::now().timestamp(), table_name);
+        let migration_name = format!(
+            "m{}_create_{}_table",
+            chrono::Utc::now().timestamp(),
+            table_name
+        );
 
         let mut up_sql = format!("CREATE TABLE {} (\n", table_name);
 
@@ -153,9 +189,16 @@ impl SeaOrmGenerator {
             let sql_type = sql_type_for_field(field, &config.db, &config.type_mappings);
 
             let nullable = if field.is_nullable { "" } else { " NOT NULL" };
-            let primary_key = if field.name == "id" { " PRIMARY KEY" } else { "" };
+            let primary_key = if field.name == "id" {
+                " PRIMARY KEY"
+            } else {
+                ""
+            };
 
-            columns.push(format!("    {} {}{}{}", column_name, sql_type, nullable, primary_key));
+            columns.push(format!(
+                "    {} {}{}{}",
+                column_name, sql_type, nullable, primary_key
+            ));
         }
 
         up_sql.push_str(&columns.join(",\n"));

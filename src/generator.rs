@@ -9,8 +9,16 @@ pub mod sea_orm;
 
 pub trait CodeGenerator {
     fn generate_schema(&self, schema: &ParsedSchema, config: &Config) -> anyhow::Result<String>;
-    fn generate_entities(&self, schema: &ParsedSchema, config: &Config) -> anyhow::Result<HashMap<String, String>>;
-    fn generate_migrations(&self, schema: &ParsedSchema, config: &Config) -> anyhow::Result<Vec<MigrationFile>>;
+    fn generate_entities(
+        &self,
+        schema: &ParsedSchema,
+        config: &Config,
+    ) -> anyhow::Result<HashMap<String, String>>;
+    fn generate_migrations(
+        &self,
+        schema: &ParsedSchema,
+        config: &Config,
+    ) -> anyhow::Result<Vec<MigrationFile>>;
 }
 
 #[derive(Debug)]
@@ -43,7 +51,7 @@ pub fn to_snake_case(s: &str) -> String {
                     true
                 } else if prev.is_uppercase() {
                     // Check if next character exists and is lowercase
-                    chars.get(i + 1).map_or(false, |&next| next.is_lowercase())
+                    chars.get(i + 1).is_some_and(|&next| next.is_lowercase())
                 } else {
                     false
                 };
@@ -61,28 +69,27 @@ pub fn to_snake_case(s: &str) -> String {
     result
 }
 
-pub fn rust_type_for_field(field: &ParsedField, db_type: &DatabaseType, scalar_mappings: &HashMap<String, String>) -> String {
+pub fn rust_type_for_field(
+    field: &ParsedField,
+    db_type: &DatabaseType,
+    scalar_mappings: &HashMap<String, String>,
+) -> String {
     match &field.field_type {
-        crate::parser::FieldType::Scalar(scalar_type) => {
-            match scalar_type.as_str() {
-                "ID" => {
-                    match db_type {
-                        DatabaseType::Sqlite => "i32".to_string(),
-                        DatabaseType::Postgres => "uuid::Uuid".to_string(),
-                        DatabaseType::Mysql => "u32".to_string(),
-                    }
-                }
-                "String" => "String".to_string(),
-                "Int" => "i32".to_string(),
-                "Float" => "f64".to_string(),
-                "Boolean" => "bool".to_string(),
-                custom => {
-                    scalar_mappings.get(custom)
-                        .cloned()
-                        .unwrap_or_else(|| "String".to_string())
-                }
-            }
-        }
+        crate::parser::FieldType::Scalar(scalar_type) => match scalar_type.as_str() {
+            "ID" => match db_type {
+                DatabaseType::Sqlite => "i32".to_string(),
+                DatabaseType::Postgres => "uuid::Uuid".to_string(),
+                DatabaseType::Mysql => "u32".to_string(),
+            },
+            "String" => "String".to_string(),
+            "Int" => "i32".to_string(),
+            "Float" => "f64".to_string(),
+            "Boolean" => "bool".to_string(),
+            custom => scalar_mappings
+                .get(custom)
+                .cloned()
+                .unwrap_or_else(|| "String".to_string()),
+        },
         crate::parser::FieldType::Reference(_type_name) => {
             // For references, we'll assume they're other entities
             // In a real implementation, we'd need to handle foreign keys
@@ -96,28 +103,27 @@ pub fn rust_type_for_field(field: &ParsedField, db_type: &DatabaseType, scalar_m
     }
 }
 
-pub fn diesel_column_type_for_field(field: &ParsedField, db_type: &DatabaseType, scalar_mappings: &HashMap<String, String>) -> String {
+pub fn diesel_column_type_for_field(
+    field: &ParsedField,
+    db_type: &DatabaseType,
+    scalar_mappings: &HashMap<String, String>,
+) -> String {
     match &field.field_type {
-        crate::parser::FieldType::Scalar(scalar_type) => {
-            match scalar_type.as_str() {
-                "ID" => {
-                    match db_type {
-                        DatabaseType::Sqlite => "Integer".to_string(),
-                        DatabaseType::Postgres => "Uuid".to_string(),
-                        DatabaseType::Mysql => "Unsigned<Integer>".to_string(),
-                    }
-                }
-                "String" => "Text".to_string(),
-                "Int" => "Integer".to_string(),
-                "Float" => "Double".to_string(),
-                "Boolean" => "Bool".to_string(),
-                custom => {
-                    scalar_mappings.get(custom)
-                        .cloned()
-                        .unwrap_or_else(|| "Text".to_string())
-                }
-            }
-        }
+        crate::parser::FieldType::Scalar(scalar_type) => match scalar_type.as_str() {
+            "ID" => match db_type {
+                DatabaseType::Sqlite => "Integer".to_string(),
+                DatabaseType::Postgres => "Uuid".to_string(),
+                DatabaseType::Mysql => "Unsigned<Integer>".to_string(),
+            },
+            "String" => "Text".to_string(),
+            "Int" => "Integer".to_string(),
+            "Float" => "Double".to_string(),
+            "Boolean" => "Bool".to_string(),
+            custom => scalar_mappings
+                .get(custom)
+                .cloned()
+                .unwrap_or_else(|| "Text".to_string()),
+        },
         crate::parser::FieldType::Reference(_) => {
             // Foreign key
             match db_type {
@@ -130,34 +136,31 @@ pub fn diesel_column_type_for_field(field: &ParsedField, db_type: &DatabaseType,
     }
 }
 
-pub fn sql_type_for_field(field: &ParsedField, db_type: &DatabaseType, scalar_mappings: &HashMap<String, String>) -> String {
+pub fn sql_type_for_field(
+    field: &ParsedField,
+    db_type: &DatabaseType,
+    scalar_mappings: &HashMap<String, String>,
+) -> String {
     match &field.field_type {
-        crate::parser::FieldType::Scalar(scalar_type) => {
-            match scalar_type.as_str() {
-                "ID" => {
-                    match db_type {
-                        DatabaseType::Sqlite => "INTEGER".to_string(),
-                        DatabaseType::Postgres => "UUID".to_string(),
-                        DatabaseType::Mysql => "INT UNSIGNED".to_string(),
-                    }
-                }
-                "String" => "TEXT".to_string(),
-                "Int" => "INTEGER".to_string(),
-                "Float" => "REAL".to_string(),
-                "Boolean" => {
-                    match db_type {
-                        DatabaseType::Sqlite => "INTEGER".to_string(),
-                        DatabaseType::Postgres => "BOOLEAN".to_string(),
-                        DatabaseType::Mysql => "TINYINT(1)".to_string(),
-                    }
-                }
-                custom => {
-                    scalar_mappings.get(custom)
-                        .cloned()
-                        .unwrap_or_else(|| "TEXT".to_string())
-                }
-            }
-        }
+        crate::parser::FieldType::Scalar(scalar_type) => match scalar_type.as_str() {
+            "ID" => match db_type {
+                DatabaseType::Sqlite => "INTEGER".to_string(),
+                DatabaseType::Postgres => "UUID".to_string(),
+                DatabaseType::Mysql => "INT UNSIGNED".to_string(),
+            },
+            "String" => "TEXT".to_string(),
+            "Int" => "INTEGER".to_string(),
+            "Float" => "REAL".to_string(),
+            "Boolean" => match db_type {
+                DatabaseType::Sqlite => "INTEGER".to_string(),
+                DatabaseType::Postgres => "BOOLEAN".to_string(),
+                DatabaseType::Mysql => "TINYINT(1)".to_string(),
+            },
+            custom => scalar_mappings
+                .get(custom)
+                .cloned()
+                .unwrap_or_else(|| "TEXT".to_string()),
+        },
         crate::parser::FieldType::Reference(_) => {
             // Foreign key
             match db_type {

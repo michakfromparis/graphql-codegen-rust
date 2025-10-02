@@ -137,6 +137,13 @@ pub struct Introspector {
 }
 
 #[allow(dead_code)]
+impl Default for Introspector {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[allow(dead_code)]
 impl Introspector {
     pub fn new() -> Self {
         Self {
@@ -286,6 +293,189 @@ impl Introspector {
         Ok(schema)
     }
 
+    fn object_type_to_sdl(&self, type_def: &Type) -> String {
+        let mut sdl = String::new();
+
+        if let Some(description) = &type_def.description {
+            sdl.push_str(&format!("\"\"\"\n{}\n\"\"\"\n", description));
+        }
+
+        let name = type_def.name.as_ref().unwrap();
+        sdl.push_str(&format!("type {} ", name));
+
+        // Add interfaces
+        if let Some(interfaces) = &type_def.interfaces {
+            if !interfaces.is_empty() {
+                let interface_names: Vec<String> =
+                    interfaces.iter().filter_map(|i| i.name.clone()).collect();
+                sdl.push_str(&format!("implements {} ", interface_names.join(" & ")));
+            }
+        }
+
+        sdl.push_str("{\n");
+
+        if let Some(fields) = &type_def.fields {
+            for field in fields {
+                if let Some(description) = &field.description {
+                    sdl.push_str(&format!("  \"\"\"\n  {}\n  \"\"\"\n", description));
+                }
+                sdl.push_str(&format!(
+                    "  {}: {}\n",
+                    field.name,
+                    self.type_ref_to_sdl(&field.type_)
+                ));
+            }
+        }
+
+        sdl.push_str("}\n\n");
+        sdl
+    }
+
+    fn interface_type_to_sdl(&self, type_def: &Type) -> String {
+        let mut sdl = String::new();
+
+        if let Some(description) = &type_def.description {
+            sdl.push_str(&format!("\"\"\"\n{}\n\"\"\"\n", description));
+        }
+
+        let name = type_def.name.as_ref().unwrap();
+        sdl.push_str(&format!("interface {} {{\n", name));
+
+        if let Some(fields) = &type_def.fields {
+            for field in fields {
+                if let Some(description) = &field.description {
+                    sdl.push_str(&format!("  \"\"\"\n  {}\n  \"\"\"\n", description));
+                }
+                sdl.push_str(&format!(
+                    "  {}: {}\n",
+                    field.name,
+                    self.type_ref_to_sdl(&field.type_)
+                ));
+            }
+        }
+
+        sdl.push_str("}\n\n");
+        sdl
+    }
+
+    fn enum_type_to_sdl(&self, type_def: &Type) -> String {
+        let mut sdl = String::new();
+
+        if let Some(description) = &type_def.description {
+            sdl.push_str(&format!("\"\"\"\n{}\n\"\"\"\n", description));
+        }
+
+        let name = type_def.name.as_ref().unwrap();
+        sdl.push_str(&format!("enum {} {{\n", name));
+
+        if let Some(values) = &type_def.enum_values {
+            for value in values {
+                if let Some(description) = &value.description {
+                    sdl.push_str(&format!("  \"\"\"\n  {}\n  \"\"\"\n", description));
+                }
+                sdl.push_str(&format!("  {}\n", value.name));
+            }
+        }
+
+        sdl.push_str("}\n\n");
+        sdl
+    }
+
+    fn input_object_type_to_sdl(&self, type_def: &Type) -> String {
+        let mut sdl = String::new();
+
+        if let Some(description) = &type_def.description {
+            sdl.push_str(&format!("\"\"\"\n{}\n\"\"\"\n", description));
+        }
+
+        let name = type_def.name.as_ref().unwrap();
+        sdl.push_str(&format!("input {} {{\n", name));
+
+        if let Some(fields) = &type_def.input_fields {
+            for field in fields {
+                if let Some(description) = &field.description {
+                    sdl.push_str(&format!("  \"\"\"\n  {}\n  \"\"\"\n", description));
+                }
+                let type_str = self.type_ref_to_sdl(&field.type_);
+                let default_value = field
+                    .default_value
+                    .as_ref()
+                    .map(|v| format!(" = {}", v))
+                    .unwrap_or_default();
+                sdl.push_str(&format!(
+                    "  {}: {}{}\n",
+                    field.name, type_str, default_value
+                ));
+            }
+        }
+
+        sdl.push_str("}\n\n");
+        sdl
+    }
+
+    fn scalar_type_to_sdl(&self, type_def: &Type) -> String {
+        let mut sdl = String::new();
+
+        if let Some(description) = &type_def.description {
+            sdl.push_str(&format!("\"\"\"\n{}\n\"\"\"\n", description));
+        }
+
+        let name = type_def.name.as_ref().unwrap();
+        sdl.push_str(&format!("scalar {}\n\n", name));
+        sdl
+    }
+
+    fn union_type_to_sdl(&self, type_def: &Type) -> String {
+        let mut sdl = String::new();
+
+        if let Some(description) = &type_def.description {
+            sdl.push_str(&format!("\"\"\"\n{}\n\"\"\"\n", description));
+        }
+
+        let name = type_def.name.as_ref().unwrap();
+        sdl.push_str(&format!("union {} = ", name));
+
+        if let Some(possible_types) = &type_def.possible_types {
+            let type_names: Vec<String> = possible_types
+                .iter()
+                .filter_map(|t| t.name.clone())
+                .collect();
+            sdl.push_str(&type_names.join(" | "));
+        }
+
+        sdl.push_str("\n\n");
+        sdl
+    }
+
+    #[allow(clippy::only_used_in_recursion)]
+    fn type_ref_to_sdl(&self, type_ref: &TypeRef) -> String {
+        let mut result = String::new();
+
+        // Handle NonNull and List wrappers
+        match type_ref.kind {
+            Some(TypeKind::NonNull) => {
+                if let Some(of_type) = &type_ref.of_type {
+                    result.push_str(&self.type_ref_to_sdl(of_type));
+                    result.push('!');
+                }
+            }
+            Some(TypeKind::List) => {
+                if let Some(of_type) = &type_ref.of_type {
+                    result.push('[');
+                    result.push_str(&self.type_ref_to_sdl(of_type));
+                    result.push(']');
+                }
+            }
+            _ => {
+                if let Some(name) = &type_ref.name {
+                    result.push_str(name);
+                }
+            }
+        }
+
+        result
+    }
+
     /// Convert introspection schema to SDL string
     pub fn schema_to_sdl(&self, schema: &Schema) -> String {
         let mut sdl = String::new();
@@ -342,176 +532,5 @@ impl Introspector {
         }
 
         sdl
-    }
-
-    fn object_type_to_sdl(&self, type_def: &Type) -> String {
-        let mut sdl = String::new();
-
-        if let Some(description) = &type_def.description {
-            sdl.push_str(&format!("\"\"\"\n{}\n\"\"\"\n", description));
-        }
-
-        let name = type_def.name.as_ref().unwrap();
-        sdl.push_str(&format!("type {} ", name));
-
-        // Add interfaces
-        if let Some(interfaces) = &type_def.interfaces {
-            if !interfaces.is_empty() {
-                let interface_names: Vec<String> = interfaces
-                    .iter()
-                    .filter_map(|i| i.name.clone())
-                    .collect();
-                sdl.push_str(&format!("implements {} ", interface_names.join(" & ")));
-            }
-        }
-
-        sdl.push_str("{\n");
-
-        if let Some(fields) = &type_def.fields {
-            for field in fields {
-                if let Some(description) = &field.description {
-                    sdl.push_str(&format!("  \"\"\"\n  {}\n  \"\"\"\n", description));
-                }
-                sdl.push_str(&format!("  {}: {}\n", field.name, self.type_ref_to_sdl(&field.type_)));
-            }
-        }
-
-        sdl.push_str("}\n\n");
-        sdl
-    }
-
-    fn interface_type_to_sdl(&self, type_def: &Type) -> String {
-        let mut sdl = String::new();
-
-        if let Some(description) = &type_def.description {
-            sdl.push_str(&format!("\"\"\"\n{}\n\"\"\"\n", description));
-        }
-
-        let name = type_def.name.as_ref().unwrap();
-        sdl.push_str(&format!("interface {} {{\n", name));
-
-        if let Some(fields) = &type_def.fields {
-            for field in fields {
-                if let Some(description) = &field.description {
-                    sdl.push_str(&format!("  \"\"\"\n  {}\n  \"\"\"\n", description));
-                }
-                sdl.push_str(&format!("  {}: {}\n", field.name, self.type_ref_to_sdl(&field.type_)));
-            }
-        }
-
-        sdl.push_str("}\n\n");
-        sdl
-    }
-
-    fn enum_type_to_sdl(&self, type_def: &Type) -> String {
-        let mut sdl = String::new();
-
-        if let Some(description) = &type_def.description {
-            sdl.push_str(&format!("\"\"\"\n{}\n\"\"\"\n", description));
-        }
-
-        let name = type_def.name.as_ref().unwrap();
-        sdl.push_str(&format!("enum {} {{\n", name));
-
-        if let Some(values) = &type_def.enum_values {
-            for value in values {
-                if let Some(description) = &value.description {
-                    sdl.push_str(&format!("  \"\"\"\n  {}\n  \"\"\"\n", description));
-                }
-                sdl.push_str(&format!("  {}\n", value.name));
-            }
-        }
-
-        sdl.push_str("}\n\n");
-        sdl
-    }
-
-    fn input_object_type_to_sdl(&self, type_def: &Type) -> String {
-        let mut sdl = String::new();
-
-        if let Some(description) = &type_def.description {
-            sdl.push_str(&format!("\"\"\"\n{}\n\"\"\"\n", description));
-        }
-
-        let name = type_def.name.as_ref().unwrap();
-        sdl.push_str(&format!("input {} {{\n", name));
-
-        if let Some(fields) = &type_def.input_fields {
-            for field in fields {
-                if let Some(description) = &field.description {
-                    sdl.push_str(&format!("  \"\"\"\n  {}\n  \"\"\"\n", description));
-                }
-                let type_str = self.type_ref_to_sdl(&field.type_);
-                let default_value = field.default_value.as_ref()
-                    .map(|v| format!(" = {}", v))
-                    .unwrap_or_default();
-                sdl.push_str(&format!("  {}: {}{}\n", field.name, type_str, default_value));
-            }
-        }
-
-        sdl.push_str("}\n\n");
-        sdl
-    }
-
-    fn scalar_type_to_sdl(&self, type_def: &Type) -> String {
-        let mut sdl = String::new();
-
-        if let Some(description) = &type_def.description {
-            sdl.push_str(&format!("\"\"\"\n{}\n\"\"\"\n", description));
-        }
-
-        let name = type_def.name.as_ref().unwrap();
-        sdl.push_str(&format!("scalar {}\n\n", name));
-        sdl
-    }
-
-    fn union_type_to_sdl(&self, type_def: &Type) -> String {
-        let mut sdl = String::new();
-
-        if let Some(description) = &type_def.description {
-            sdl.push_str(&format!("\"\"\"\n{}\n\"\"\"\n", description));
-        }
-
-        let name = type_def.name.as_ref().unwrap();
-        sdl.push_str(&format!("union {} = ", name));
-
-        if let Some(possible_types) = &type_def.possible_types {
-            let type_names: Vec<String> = possible_types
-                .iter()
-                .filter_map(|t| t.name.clone())
-                .collect();
-            sdl.push_str(&type_names.join(" | "));
-        }
-
-        sdl.push_str("\n\n");
-        sdl
-    }
-
-    fn type_ref_to_sdl(&self, type_ref: &TypeRef) -> String {
-        let mut result = String::new();
-
-        // Handle NonNull and List wrappers
-        match type_ref.kind {
-            Some(TypeKind::NonNull) => {
-                if let Some(of_type) = &type_ref.of_type {
-                    result.push_str(&self.type_ref_to_sdl(of_type));
-                    result.push('!');
-                }
-            }
-            Some(TypeKind::List) => {
-                if let Some(of_type) = &type_ref.of_type {
-                    result.push('[');
-                    result.push_str(&self.type_ref_to_sdl(of_type));
-                    result.push(']');
-                }
-            }
-            _ => {
-                if let Some(name) = &type_ref.name {
-                    result.push_str(name);
-                }
-            }
-        }
-
-        result
     }
 }

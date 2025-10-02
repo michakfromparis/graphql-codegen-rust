@@ -1,1 +1,44 @@
-/target
+# Rust build artifacts
+/target/
+/Cargo.lock
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+
+# Log files
+*.log
+
+# Coverage reports
+*.profraw
+lcov.info
+coverage/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Generated files (if any)
+/generated/
+/dist/
+
+# Backup files
+*.bak
+*.backup

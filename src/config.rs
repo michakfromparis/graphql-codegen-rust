@@ -4,9 +4,6 @@ use std::path::PathBuf;
 
 use crate::cli::{DatabaseType, OrmType};
 
-#[cfg(feature = "yaml-codegen-config")]
-use serde_yaml;
-
 /// YAML configuration format compatible with GraphQL Code Generator
 #[cfg(feature = "yaml-codegen-config")]
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -138,20 +135,15 @@ fn default_true() -> bool {
     true
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub enum TableNamingConvention {
     /// Convert GraphQL type names to snake_case (default)
     #[serde(rename = "snake_case")]
+    #[default]
     SnakeCase,
     /// Keep GraphQL type names as-is
     #[serde(rename = "pascal_case")]
     PascalCase,
-}
-
-impl Default for TableNamingConvention {
-    fn default() -> Self {
-        TableNamingConvention::SnakeCase
-    }
 }
 
 impl Config {
@@ -160,15 +152,20 @@ impl Config {
         let contents = std::fs::read_to_string(path)?;
 
         // Check if it's YAML (starts with schema: or has .yml/.yaml extension)
-        if path.extension().map_or(false, |ext| ext == "yml" || ext == "yaml")
-            || contents.trim().starts_with("schema:") {
+        if path
+            .extension()
+            .is_some_and(|ext| ext == "yml" || ext == "yaml")
+            || contents.trim().starts_with("schema:")
+        {
             #[cfg(feature = "yaml-codegen-config")]
             {
-                return Self::from_yaml_str(&contents);
+                Self::from_yaml_str(&contents)
             }
             #[cfg(not(feature = "yaml-codegen-config"))]
             {
-                return Err(anyhow::anyhow!("YAML config support not enabled. Rebuild with --features yaml-codegen-config"));
+                Err(anyhow::anyhow!(
+                    "YAML config support not enabled. Rebuild with --features yaml-codegen-config"
+                ))
             }
         } else {
             Self::from_toml_str(&contents)
@@ -217,7 +214,7 @@ impl Config {
     }
 
     /// Get the config file path for a given output directory
-    pub fn config_path(output_dir: &PathBuf) -> PathBuf {
+    pub fn config_path(output_dir: &std::path::Path) -> PathBuf {
         output_dir.join("graphql-rust-codegen.toml")
     }
 
@@ -241,14 +238,22 @@ impl Config {
             return Ok(toml_path);
         }
 
-        Err(anyhow::anyhow!("No config file found. Expected codegen.yml, codegen.yaml, or graphql-rust-codegen.toml"))
+        Err(anyhow::anyhow!(
+            "No config file found. Expected codegen.yml, codegen.yaml, or graphql-rust-codegen.toml"
+        ))
     }
 }
 
 impl From<&crate::cli::Commands> for Config {
     fn from(cmd: &crate::cli::Commands) -> Self {
         match cmd {
-            crate::cli::Commands::Init { url, orm, db, output, headers } => {
+            crate::cli::Commands::Init {
+                url,
+                orm,
+                db,
+                output,
+                headers,
+            } => {
                 let headers_map = headers.iter().cloned().collect();
 
                 Config {

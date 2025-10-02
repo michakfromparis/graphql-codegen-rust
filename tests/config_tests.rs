@@ -23,7 +23,10 @@ Authorization = "Bearer token123"
     assert_eq!(config.orm, graphql_rust_codegen::cli::OrmType::Diesel);
     assert_eq!(config.db, graphql_rust_codegen::cli::DatabaseType::Sqlite);
     assert_eq!(config.output_dir, PathBuf::from("./generated"));
-    assert_eq!(config.headers.get("Authorization"), Some(&"Bearer token123".to_string()));
+    assert_eq!(
+        config.headers.get("Authorization"),
+        Some(&"Bearer token123".to_string())
+    );
     assert!(config.generate_migrations);
     assert!(config.generate_entities);
 }
@@ -32,15 +35,16 @@ Authorization = "Bearer token123"
 #[test]
 fn test_config_from_yaml_string() {
     let yaml_content = r#"
-schema: https://api.example.com/graphql
+schema:
+  url: https://api.example.com/graphql
+  headers:
+    Authorization: "Bearer token123"
 rust_codegen:
-  orm: diesel
-  db: sqlite
+  orm: Diesel
+  db: Sqlite
   output_dir: ./generated
   generate_migrations: true
   generate_entities: true
-  headers:
-    Authorization: "Bearer token123"
 "#;
 
     let config = Config::from_yaml_str(yaml_content).unwrap();
@@ -49,7 +53,10 @@ rust_codegen:
     assert_eq!(config.orm, graphql_rust_codegen::cli::OrmType::Diesel);
     assert_eq!(config.db, graphql_rust_codegen::cli::DatabaseType::Sqlite);
     assert_eq!(config.output_dir, PathBuf::from("./generated"));
-    assert_eq!(config.headers.get("Authorization"), Some(&"Bearer token123".to_string()));
+    assert_eq!(
+        config.headers.get("Authorization"),
+        Some(&"Bearer token123".to_string())
+    );
     assert!(config.generate_migrations);
     assert!(config.generate_entities);
 }
@@ -84,7 +91,10 @@ schema:
     let config = Config::from_yaml_str(yaml_content).unwrap();
 
     assert_eq!(config.url, "https://api.example.com/graphql");
-    assert_eq!(config.headers.get("Authorization"), Some(&"Bearer token123".to_string()));
+    assert_eq!(
+        config.headers.get("Authorization"),
+        Some(&"Bearer token123".to_string())
+    );
     assert_eq!(config.headers.get("X-API-Key"), Some(&"key456".to_string()));
 }
 
@@ -93,7 +103,12 @@ fn test_config_auto_detect() {
     // This test assumes no config files exist in the test environment
     let result = Config::auto_detect_config();
     assert!(result.is_err());
-    assert!(result.unwrap_err().to_string().contains("No config file found"));
+    assert!(
+        result
+            .unwrap_err()
+            .to_string()
+            .contains("No config file found")
+    );
 }
 
 #[test]
@@ -121,7 +136,10 @@ Authorization = "Bearer token123"
     assert_eq!(config.orm, graphql_rust_codegen::cli::OrmType::SeaOrm);
     assert_eq!(config.db, graphql_rust_codegen::cli::DatabaseType::Postgres);
     assert_eq!(config.output_dir, PathBuf::from("./custom_output"));
-    assert_eq!(config.headers.get("Authorization"), Some(&"Bearer token123".to_string()));
+    assert_eq!(
+        config.headers.get("Authorization"),
+        Some(&"Bearer token123".to_string())
+    );
     assert!(!config.generate_migrations);
     assert!(config.generate_entities);
 }
@@ -138,8 +156,8 @@ schema:
   headers:
     Authorization: "Bearer token123"
 rust_codegen:
-  orm: diesel
-  db: sqlite
+  orm: Diesel
+  db: Sqlite
   output_dir: ./yaml_output
   generate_migrations: true
   generate_entities: false
@@ -153,7 +171,10 @@ rust_codegen:
     assert_eq!(config.orm, graphql_rust_codegen::cli::OrmType::Diesel);
     assert_eq!(config.db, graphql_rust_codegen::cli::DatabaseType::Sqlite);
     assert_eq!(config.output_dir, PathBuf::from("./yaml_output"));
-    assert_eq!(config.headers.get("Authorization"), Some(&"Bearer token123".to_string()));
+    assert_eq!(
+        config.headers.get("Authorization"),
+        Some(&"Bearer token123".to_string())
+    );
     assert!(config.generate_migrations);
     assert!(!config.generate_entities);
 }

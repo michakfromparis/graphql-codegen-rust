@@ -50,6 +50,13 @@ pub struct GraphQLParser {
 }
 
 #[allow(dead_code)]
+impl Default for GraphQLParser {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[allow(dead_code)]
 impl GraphQLParser {
     pub fn new() -> Self {
         Self {
@@ -77,7 +84,9 @@ impl GraphQLParser {
     pub fn parse_from_sdl_simple(&self, _sdl: &str) -> anyhow::Result<ParsedSchema> {
         // For now, just return introspection-based parsing
         // TODO: Implement proper SDL parsing
-        Err(anyhow::anyhow!("SDL parsing not yet implemented, use introspection"))
+        Err(anyhow::anyhow!(
+            "SDL parsing not yet implemented, use introspection"
+        ))
     }
 
     fn parse_schema(&self, schema: IntrospectionSchema) -> anyhow::Result<ParsedSchema> {
@@ -88,8 +97,16 @@ impl GraphQLParser {
         for type_def in schema.types {
             if let Some(name) = &type_def.name {
                 // Skip introspection types and built-in scalars
-                if name.starts_with("__") || name == "String" || name == "Int" || name == "Float" || name == "Boolean" || name == "ID" {
-                    if matches!(type_def.kind, crate::introspection::TypeKind::Scalar) && !name.starts_with("__") {
+                if name.starts_with("__")
+                    || name == "String"
+                    || name == "Int"
+                    || name == "Float"
+                    || name == "Boolean"
+                    || name == "ID"
+                {
+                    if matches!(type_def.kind, crate::introspection::TypeKind::Scalar)
+                        && !name.starts_with("__")
+                    {
                         scalars.push(name.clone());
                     }
                     continue;
@@ -117,7 +134,11 @@ impl GraphQLParser {
             }
         }
 
-        Ok(ParsedSchema { types, enums, scalars })
+        Ok(ParsedSchema {
+            types,
+            enums,
+            scalars,
+        })
     }
 
     // fn parse_document is removed for now - focusing on introspection
@@ -129,18 +150,16 @@ impl GraphQLParser {
 
         if let Some(introspection_fields) = &type_def.fields {
             for field in introspection_fields {
-                if let Some(parsed_field) = self.parse_field(&field) {
+                if let Some(parsed_field) = self.parse_field(field) {
                     fields.push(parsed_field);
                 }
             }
         }
 
-        let interfaces = type_def.interfaces.as_ref()
-            .map(|interfaces| {
-                interfaces.iter()
-                    .filter_map(|i| i.name.clone())
-                    .collect()
-            })
+        let interfaces = type_def
+            .interfaces
+            .as_ref()
+            .map(|interfaces| interfaces.iter().filter_map(|i| i.name.clone()).collect())
             .unwrap_or_default();
 
         Some(ParsedType {
@@ -163,7 +182,11 @@ impl GraphQLParser {
         })
     }
 
-    fn parse_type_ref(&self, type_ref: &crate::introspection::TypeRef) -> Option<(FieldType, bool, bool)> {
+    #[allow(clippy::only_used_in_recursion)]
+    fn parse_type_ref(
+        &self,
+        type_ref: &crate::introspection::TypeRef,
+    ) -> Option<(FieldType, bool, bool)> {
         match type_ref.kind {
             Some(crate::introspection::TypeKind::NonNull) => {
                 if let Some(of_type) = &type_ref.of_type {
