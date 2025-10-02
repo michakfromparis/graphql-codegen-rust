@@ -209,9 +209,15 @@ impl SeaOrmGenerator {
                     output.push_str(&format!("#[sea_orm(table_name = \"{}\")]\n", table_name));
                     output.push_str("pub enum Relation {\n");
                     output.push_str("    #[sea_orm(\n");
-                    output.push_str(&format!("        belongs_to = \"super::{}::Entity\",\n", related_type));
+                    output.push_str(&format!(
+                        "        belongs_to = \"super::{}::Entity\",\n",
+                        related_type
+                    ));
                     output.push_str(&format!("        from = \"Column::{}\",\n", field.name));
-                    output.push_str(&format!("        to = \"super::{}::Column::Id\",\n", related_type));
+                    output.push_str(&format!(
+                        "        to = \"super::{}::Column::Id\",\n",
+                        related_type
+                    ));
                     output.push_str("        on_update = \"Cascade\",\n");
                     output.push_str("        on_delete = \"Cascade\"\n");
                     output.push_str("    )]\n");
