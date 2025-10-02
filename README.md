@@ -239,7 +239,7 @@ cargo install cargo-audit
 cargo audit
 
 # License and dependency compliance
-cargo install cargo-deny
+cargo install cargo-deny --version 0.18.3
 cargo deny check
 
 # Code coverage (requires llvm-tools)
