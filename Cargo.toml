@@ -57,7 +57,7 @@ chrono = { version = "0.4", features = ["serde"] }
 diesel = { version = "2.1", features = ["sqlite", "postgres", "uuid", "chrono"], optional = true }
 
 # Sea-ORM (optional, for generation)
-sea-orm = { version = "0.12", features = ["sqlx-sqlite", "sqlx-postgres", "runtime-tokio-rustls", "macros"], optional = true }
+sea-orm = { version = "1.0", features = ["sqlx-sqlite", "sqlx-postgres", "runtime-tokio-rustls", "macros"], optional = true }
 
 [dev-dependencies]
 tempfile = "3.0"
