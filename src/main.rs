@@ -108,10 +108,7 @@ async fn main() -> anyhow::Result<()> {
             logger.success("Initialization complete!");
             logger.info(&format!("Config saved to: {:?}", config_path));
         }
-        Some(Commands::Generate {
-            config,
-            output,
-        }) => {
+        Some(Commands::Generate { config, output }) => {
             logger.info("Generating code...");
 
             // Find config file
