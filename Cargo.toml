@@ -1,0 +1,49 @@
+[package]
+name = "graphql-diesel-sync"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+# CLI
+clap = { version = "4.4", features = ["derive"] }
+
+# HTTP client
+reqwest = { version = "0.11", features = ["json"] }
+tokio = { version = "1.0", features = ["full"] }
+
+# GraphQL parsing
+graphql-parser = "0.4"
+
+# Code generation
+syn = { version = "2.0", features = ["full", "extra-traits"] }
+quote = "1.0"
+proc-macro2 = "1.0"
+
+# Serialization
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+toml = "0.8"
+
+# Error handling
+anyhow = "1.0"
+thiserror = "1.0"
+
+# File system operations
+fs-err = "2.9"
+
+# UUID support (for GraphQL ID mapping)
+uuid = { version = "1.0", features = ["v4", "serde"] }
+
+# Date/time support for migrations
+chrono = { version = "0.4", features = ["serde"] }
+
+# Diesel (optional, for generation)
+diesel = { version = "2.1", features = ["sqlite", "postgres", "uuid", "chrono"], optional = true }
+
+# Sea-ORM (optional, for generation)
+sea-orm = { version = "0.12", features = ["sqlx-sqlite", "sqlx-postgres", "runtime-tokio-rustls", "macros"], optional = true }
+
+[features]
+default = []
+diesel-support = ["diesel"]
+sea-orm-support = ["sea-orm"]
