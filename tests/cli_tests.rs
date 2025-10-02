@@ -1,16 +1,16 @@
 use clap::Parser;
-use graphql_rust_codegen::cli::{Cli, Commands, DatabaseType, OrmType};
+use graphql_codegen_rust::cli::{Cli, Commands, DatabaseType, OrmType};
 
 #[test]
 fn test_cli_no_args() {
-    let cli = Cli::try_parse_from(["graphql-rust-codegen"]).unwrap();
+    let cli = Cli::try_parse_from(["graphql-codegen-rust"]).unwrap();
     assert!(cli.command.is_none());
 }
 
 #[test]
 fn test_cli_init_command() {
     let cli = Cli::try_parse_from([
-        "graphql-rust-codegen",
+        "graphql-codegen-rust",
         "init",
         "--url",
         "https://api.example.com/graphql",
@@ -44,7 +44,7 @@ fn test_cli_init_command() {
 #[test]
 fn test_cli_init_with_headers() {
     let cli = Cli::try_parse_from([
-        "graphql-rust-codegen",
+        "graphql-codegen-rust",
         "init",
         "--url",
         "https://api.example.com/graphql",
@@ -87,7 +87,7 @@ fn test_cli_init_with_headers() {
 #[test]
 fn test_cli_generate_command() {
     let cli = Cli::try_parse_from([
-        "graphql-rust-codegen",
+        "graphql-codegen-rust",
         "generate",
         "--config",
         "codegen.yml",
@@ -110,7 +110,7 @@ fn test_cli_generate_command() {
 #[test]
 fn test_cli_generate_with_output() {
     let cli = Cli::try_parse_from([
-        "graphql-rust-codegen",
+        "graphql-codegen-rust",
         "generate",
         "--output",
         "./custom_output",
@@ -132,6 +132,6 @@ fn test_cli_generate_with_output() {
 
 #[test]
 fn test_cli_invalid_command() {
-    let result = Cli::try_parse_from(["graphql-rust-codegen", "invalid"]);
+    let result = Cli::try_parse_from(["graphql-codegen-rust", "invalid"]);
     assert!(result.is_err());
 }

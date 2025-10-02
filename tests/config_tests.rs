@@ -1,4 +1,4 @@
-use graphql_rust_codegen::Config;
+use graphql_codegen_rust::Config;
 use std::fs;
 use std::path::PathBuf;
 use tempfile::TempDir;
@@ -20,8 +20,8 @@ Authorization = "Bearer token123"
     let config = Config::from_toml_str(toml_content).unwrap();
 
     assert_eq!(config.url, "https://api.example.com/graphql");
-    assert_eq!(config.orm, graphql_rust_codegen::cli::OrmType::Diesel);
-    assert_eq!(config.db, graphql_rust_codegen::cli::DatabaseType::Sqlite);
+    assert_eq!(config.orm, graphql_codegen_rust::cli::OrmType::Diesel);
+    assert_eq!(config.db, graphql_codegen_rust::cli::DatabaseType::Sqlite);
     assert_eq!(config.output_dir, PathBuf::from("./generated"));
     assert_eq!(
         config.headers.get("Authorization"),
@@ -50,8 +50,8 @@ rust_codegen:
     let config = Config::from_yaml_str(yaml_content).unwrap();
 
     assert_eq!(config.url, "https://api.example.com/graphql");
-    assert_eq!(config.orm, graphql_rust_codegen::cli::OrmType::Diesel);
-    assert_eq!(config.db, graphql_rust_codegen::cli::DatabaseType::Sqlite);
+    assert_eq!(config.orm, graphql_codegen_rust::cli::OrmType::Diesel);
+    assert_eq!(config.db, graphql_codegen_rust::cli::DatabaseType::Sqlite);
     assert_eq!(config.output_dir, PathBuf::from("./generated"));
     assert_eq!(
         config.headers.get("Authorization"),
@@ -71,8 +71,8 @@ schema: https://api.example.com/graphql
     let config = Config::from_yaml_str(yaml_content).unwrap();
 
     assert_eq!(config.url, "https://api.example.com/graphql");
-    assert_eq!(config.orm, graphql_rust_codegen::cli::OrmType::Diesel); // default
-    assert_eq!(config.db, graphql_rust_codegen::cli::DatabaseType::Sqlite); // default
+    assert_eq!(config.orm, graphql_codegen_rust::cli::OrmType::Diesel); // default
+    assert_eq!(config.db, graphql_codegen_rust::cli::DatabaseType::Sqlite); // default
     assert_eq!(config.output_dir, PathBuf::from("./generated")); // default
     assert!(config.headers.is_empty());
 }
@@ -133,8 +133,8 @@ Authorization = "Bearer token123"
     let config = Config::from_file(&config_path).unwrap();
 
     assert_eq!(config.url, "https://api.example.com/graphql");
-    assert_eq!(config.orm, graphql_rust_codegen::cli::OrmType::SeaOrm);
-    assert_eq!(config.db, graphql_rust_codegen::cli::DatabaseType::Postgres);
+    assert_eq!(config.orm, graphql_codegen_rust::cli::OrmType::SeaOrm);
+    assert_eq!(config.db, graphql_codegen_rust::cli::DatabaseType::Postgres);
     assert_eq!(config.output_dir, PathBuf::from("./custom_output"));
     assert_eq!(
         config.headers.get("Authorization"),
@@ -168,8 +168,8 @@ rust_codegen:
     let config = Config::from_file(&config_path).unwrap();
 
     assert_eq!(config.url, "https://api.example.com/graphql");
-    assert_eq!(config.orm, graphql_rust_codegen::cli::OrmType::Diesel);
-    assert_eq!(config.db, graphql_rust_codegen::cli::DatabaseType::Sqlite);
+    assert_eq!(config.orm, graphql_codegen_rust::cli::OrmType::Diesel);
+    assert_eq!(config.db, graphql_codegen_rust::cli::DatabaseType::Sqlite);
     assert_eq!(config.output_dir, PathBuf::from("./yaml_output"));
     assert_eq!(
         config.headers.get("Authorization"),
