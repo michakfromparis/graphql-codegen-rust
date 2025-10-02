@@ -80,16 +80,26 @@ impl CodeGenerator for SeaOrmGenerator {
         for (type_name, parsed_type) in &schema.types {
             if matches!(parsed_type.kind, crate::parser::TypeKind::Object) {
                 object_count += 1;
-                let entity_code = self.generate_entity_struct(type_name, parsed_type, config)
-                    .map_err(|e| anyhow::anyhow!("Failed to generate Sea-ORM entity for type '{}': {}", type_name, e))?;
+                let entity_code = self
+                    .generate_entity_struct(type_name, parsed_type, config)
+                    .map_err(|e| {
+                        anyhow::anyhow!(
+                            "Failed to generate Sea-ORM entity for type '{}': {}",
+                            type_name,
+                            e
+                        )
+                    })?;
                 entities.insert(format!("{}.rs", to_snake_case(type_name)), entity_code);
             }
         }
 
         // Generate enums
         for (enum_name, parsed_enum) in &schema.enums {
-            let enum_code = self.generate_enum_type(enum_name, parsed_enum)
-                .map_err(|e| anyhow::anyhow!("Failed to generate Sea-ORM enum '{}': {}", enum_name, e))?;
+            let enum_code = self
+                .generate_enum_type(enum_name, parsed_enum)
+                .map_err(|e| {
+                    anyhow::anyhow!("Failed to generate Sea-ORM enum '{}': {}", enum_name, e)
+                })?;
             entities.insert(format!("{}.rs", to_snake_case(enum_name)), enum_code);
         }
 

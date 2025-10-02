@@ -41,15 +41,29 @@ impl CodeGenerator for DieselGenerator {
             if !matches!(parsed_type.kind, crate::parser::TypeKind::Object) {
                 continue; // Skip interfaces and unions for Diesel schema
             }
-            output.push_str(&self.generate_table_macro(type_name, parsed_type, config)
-                .map_err(|e| anyhow::anyhow!("Failed to generate table macro for type '{}': {}", type_name, e))?);
+            output.push_str(
+                &self
+                    .generate_table_macro(type_name, parsed_type, config)
+                    .map_err(|e| {
+                        anyhow::anyhow!(
+                            "Failed to generate table macro for type '{}': {}",
+                            type_name,
+                            e
+                        )
+                    })?,
+            );
             output.push('\n');
         }
 
         // Generate enum types if needed
         for (enum_name, parsed_enum) in &schema.enums {
-            output.push_str(&self.generate_enum_type(enum_name, parsed_enum)
-                .map_err(|e| anyhow::anyhow!("Failed to generate enum type '{}': {}", enum_name, e))?);
+            output.push_str(
+                &self
+                    .generate_enum_type(enum_name, parsed_enum)
+                    .map_err(|e| {
+                        anyhow::anyhow!("Failed to generate enum type '{}': {}", enum_name, e)
+                    })?,
+            );
             output.push('\n');
         }
 
@@ -68,8 +82,15 @@ impl CodeGenerator for DieselGenerator {
         for (type_name, parsed_type) in &schema.types {
             if matches!(parsed_type.kind, crate::parser::TypeKind::Object) {
                 object_count += 1;
-                let entity_code = self.generate_entity_struct(type_name, parsed_type, config)
-                    .map_err(|e| anyhow::anyhow!("Failed to generate entity struct for type '{}': {}", type_name, e))?;
+                let entity_code = self
+                    .generate_entity_struct(type_name, parsed_type, config)
+                    .map_err(|e| {
+                        anyhow::anyhow!(
+                            "Failed to generate entity struct for type '{}': {}",
+                            type_name,
+                            e
+                        )
+                    })?;
                 entities.insert(format!("{}.rs", to_snake_case(type_name)), entity_code);
             }
         }
@@ -95,8 +116,15 @@ impl CodeGenerator for DieselGenerator {
         for (type_name, parsed_type) in &schema.types {
             if matches!(parsed_type.kind, crate::parser::TypeKind::Object) {
                 object_count += 1;
-                let migration = self.generate_table_migration(type_name, parsed_type, config)
-                    .map_err(|e| anyhow::anyhow!("Failed to generate migration for type '{}': {}", type_name, e))?;
+                let migration = self
+                    .generate_table_migration(type_name, parsed_type, config)
+                    .map_err(|e| {
+                        anyhow::anyhow!(
+                            "Failed to generate migration for type '{}': {}",
+                            type_name,
+                            e
+                        )
+                    })?;
                 migrations.push(migration);
             }
         }

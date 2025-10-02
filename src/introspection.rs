@@ -281,7 +281,9 @@ impl Introspector {
 
             return Err(anyhow::anyhow!(
                 "GraphQL introspection failed with HTTP {}: {}\nURL: {}\n\nTroubleshooting:\n- Verify the URL is correct and accessible\n- Check authentication headers if required\n- Ensure the server supports GraphQL introspection",
-                status_code, error_msg, url
+                status_code,
+                error_msg,
+                url
             ));
         }
 
