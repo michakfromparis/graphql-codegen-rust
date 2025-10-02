@@ -2,17 +2,17 @@ use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 
 #[derive(Parser)]
-#[command(name = "graphql-diesel-sync")]
+#[command(name = "graphql-rust-codegen")]
 #[command(version = "0.1.0")]
-#[command(about = "Generate Diesel/Sea-ORM code from GraphQL schemas")]
+#[command(about = "Generate Rust ORM code from GraphQL schemas")]
 pub struct Cli {
     #[command(subcommand)]
-    pub command: Commands,
+    pub command: Option<Commands>,
 }
 
 #[derive(Subcommand)]
 pub enum Commands {
-    /// Initialize a new GraphQL sync project
+    /// Initialize a new GraphQL codegen project
     Init {
         /// GraphQL endpoint URL
         #[arg(short, long)]
@@ -37,6 +37,10 @@ pub enum Commands {
 
     /// Generate code from existing configuration
     Generate {
+        /// Config file path (auto-detects codegen.yml or TOML)
+        #[arg(short, long)]
+        config: Option<PathBuf>,
+
         /// Specific types to generate (comma-separated)
         #[arg(short, long)]
         types: Option<Vec<String>>,
