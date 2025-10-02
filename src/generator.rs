@@ -29,18 +29,32 @@ pub fn create_generator(orm: &OrmType) -> Box<dyn CodeGenerator> {
 
 pub fn to_snake_case(s: &str) -> String {
     let mut result = String::new();
-    let mut prev_was_upper = false;
+    let chars: Vec<char> = s.chars().collect();
 
-    for (i, ch) in s.char_indices() {
+    for (i, &ch) in chars.iter().enumerate() {
         if ch.is_uppercase() {
-            if i > 0 && !prev_was_upper {
-                result.push('_');
+            // Add underscore if:
+            // 1. Not the first character AND previous character exists AND either:
+            //    a. Previous was lowercase, OR
+            //    b. Previous was uppercase and next is lowercase (end of acronym)
+            if i > 0 {
+                let prev = chars[i - 1];
+                let should_add_underscore = if prev.is_lowercase() {
+                    true
+                } else if prev.is_uppercase() {
+                    // Check if next character exists and is lowercase
+                    chars.get(i + 1).map_or(false, |&next| next.is_lowercase())
+                } else {
+                    false
+                };
+
+                if should_add_underscore {
+                    result.push('_');
+                }
             }
             result.push(ch.to_lowercase().next().unwrap());
-            prev_was_upper = true;
         } else {
             result.push(ch);
-            prev_was_upper = false;
         }
     }
 
