@@ -16,7 +16,13 @@ async fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Some(Commands::Init { url, orm, db, output, headers }) => {
+        Some(Commands::Init {
+            url,
+            orm,
+            db,
+            output,
+            headers,
+        }) => {
             println!("Initializing GraphQL codegen...");
             println!("URL: {}", url);
             println!("ORM: {:?}", orm);
@@ -27,11 +33,19 @@ async fn main() -> anyhow::Result<()> {
             std::fs::create_dir_all(&output)?;
 
             // Create config
-            let config = Config::from(&Commands::Init { url, orm, db, output, headers });
+            let config = Config::from(&Commands::Init {
+                url,
+                orm,
+                db,
+                output,
+                headers,
+            });
 
             // Fetch and parse schema
             let parser = GraphQLParser::new();
-            let schema = parser.parse_from_introspection(&config.url, &config.headers).await?;
+            let schema = parser
+                .parse_from_introspection(&config.url, &config.headers)
+                .await?;
 
             // Save config
             let config_path = Config::config_path(&config.output_dir);
@@ -44,7 +58,11 @@ async fn main() -> anyhow::Result<()> {
             println!("✅ Initialization complete!");
             println!("Config saved to: {:?}", config_path);
         }
-        Some(Commands::Generate { config, types: _, output }) => {
+        Some(Commands::Generate {
+            config,
+            types: _,
+            output,
+        }) => {
             println!("Generating code...");
 
             // Find config file
@@ -63,7 +81,9 @@ async fn main() -> anyhow::Result<()> {
 
             // Fetch and parse schema
             let parser = GraphQLParser::new();
-            let schema = parser.parse_from_introspection(&config.url, &config.headers).await?;
+            let schema = parser
+                .parse_from_introspection(&config.url, &config.headers)
+                .await?;
 
             // Generate code
             let generator = create_generator(&config.orm);
@@ -80,7 +100,9 @@ async fn main() -> anyhow::Result<()> {
 
             // Fetch and parse schema
             let parser = GraphQLParser::new();
-            let schema = parser.parse_from_introspection(&config.url, &config.headers).await?;
+            let schema = parser
+                .parse_from_introspection(&config.url, &config.headers)
+                .await?;
 
             // Generate code
             let generator = create_generator(&config.orm);

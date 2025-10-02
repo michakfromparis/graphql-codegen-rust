@@ -49,7 +49,9 @@ impl CodeGenerator {
     pub async fn generate_from_config(&self, config: &Config) -> anyhow::Result<()> {
         // Fetch and parse schema
         let parser = parser::GraphQLParser::new();
-        let schema = parser.parse_from_introspection(&config.url, &config.headers).await?;
+        let schema = parser
+            .parse_from_introspection(&config.url, &config.headers)
+            .await?;
 
         // Generate all code
         generate_all_code(&schema, config, &self.inner).await

@@ -2,7 +2,10 @@ use std::collections::HashMap;
 
 use crate::cli::DatabaseType;
 use crate::config::Config;
-use crate::generator::{diesel_column_type_for_field, sql_type_for_field, to_snake_case, CodeGenerator, MigrationFile, rust_type_for_field};
+use crate::generator::{
+    diesel_column_type_for_field, rust_type_for_field, sql_type_for_field, to_snake_case,
+    CodeGenerator, MigrationFile,
+};
 use crate::parser::{ParsedEnum, ParsedSchema, ParsedType};
 
 pub struct DieselGenerator;
@@ -35,7 +38,11 @@ impl CodeGenerator for DieselGenerator {
         Ok(output)
     }
 
-    fn generate_entities(&self, schema: &ParsedSchema, config: &Config) -> anyhow::Result<HashMap<String, String>> {
+    fn generate_entities(
+        &self,
+        schema: &ParsedSchema,
+        config: &Config,
+    ) -> anyhow::Result<HashMap<String, String>> {
         let mut entities = HashMap::new();
 
         for (type_name, parsed_type) in &schema.types {
@@ -46,7 +53,11 @@ impl CodeGenerator for DieselGenerator {
         Ok(entities)
     }
 
-    fn generate_migrations(&self, schema: &ParsedSchema, config: &Config) -> anyhow::Result<Vec<MigrationFile>> {
+    fn generate_migrations(
+        &self,
+        schema: &ParsedSchema,
+        config: &Config,
+    ) -> anyhow::Result<Vec<MigrationFile>> {
         let mut migrations = Vec::new();
 
         for (type_name, parsed_type) in &schema.types {
@@ -59,12 +70,19 @@ impl CodeGenerator for DieselGenerator {
 }
 
 impl DieselGenerator {
-    fn generate_table_macro(&self, type_name: &str, parsed_type: &ParsedType, config: &Config) -> anyhow::Result<String> {
+    fn generate_table_macro(
+        &self,
+        type_name: &str,
+        parsed_type: &ParsedType,
+        config: &Config,
+    ) -> anyhow::Result<String> {
         let table_name = to_snake_case(type_name);
         let mut output = format!("table! {{\n    {} (", table_name);
 
         // Primary key - assume first field named 'id' or add one
-        let id_field = parsed_type.fields.iter()
+        let id_field = parsed_type
+            .fields
+            .iter()
             .find(|f| f.name == "id")
             .or_else(|| parsed_type.fields.first());
 
@@ -77,17 +95,26 @@ impl DieselGenerator {
         // Generate columns
         for field in &parsed_type.fields {
             let column_name = to_snake_case(&field.name);
-            let column_type = diesel_column_type_for_field(field, &config.db, &config.type_mappings);
+            let column_type =
+                diesel_column_type_for_field(field, &config.db, &config.type_mappings);
 
             let nullable = if field.is_nullable { "" } else { ".not_null()" };
-            output.push_str(&format!("        {} -> {}{},\n", column_name, column_type, nullable));
+            output.push_str(&format!(
+                "        {} -> {}{},\n",
+                column_name, column_type, nullable
+            ));
         }
 
         output.push_str("    }\n}\n");
         Ok(output)
     }
 
-    fn generate_entity_struct(&self, type_name: &str, parsed_type: &ParsedType, config: &Config) -> anyhow::Result<String> {
+    fn generate_entity_struct(
+        &self,
+        type_name: &str,
+        parsed_type: &ParsedType,
+        config: &Config,
+    ) -> anyhow::Result<String> {
         let struct_name = type_name.to_string();
         let table_name = to_snake_case(type_name);
 
@@ -116,7 +143,8 @@ impl DieselGenerator {
         output.push_str(&format!("pub struct New{} {{\n", struct_name));
 
         for field in &parsed_type.fields {
-            if field.name != "id" {  // Skip id for inserts
+            if field.name != "id" {
+                // Skip id for inserts
                 let field_name = to_snake_case(&field.name);
                 let field_type = rust_type_for_field(field, &config.db, &config.type_mappings);
                 output.push_str(&format!("    pub {}: {},\n", field_name, field_type));
@@ -128,7 +156,11 @@ impl DieselGenerator {
         Ok(output)
     }
 
-    fn generate_enum_type(&self, enum_name: &str, parsed_enum: &ParsedEnum) -> anyhow::Result<String> {
+    fn generate_enum_type(
+        &self,
+        enum_name: &str,
+        parsed_enum: &ParsedEnum,
+    ) -> anyhow::Result<String> {
         let mut output = String::new();
 
         if let Some(description) = &parsed_enum.description {
@@ -149,7 +181,12 @@ impl DieselGenerator {
         Ok(output)
     }
 
-    fn generate_table_migration(&self, type_name: &str, parsed_type: &ParsedType, config: &Config) -> anyhow::Result<MigrationFile> {
+    fn generate_table_migration(
+        &self,
+        type_name: &str,
+        parsed_type: &ParsedType,
+        config: &Config,
+    ) -> anyhow::Result<MigrationFile> {
         let table_name = to_snake_case(type_name);
         let migration_name = format!("create_{}_table", table_name);
 
@@ -173,9 +210,16 @@ impl DieselGenerator {
             let sql_type = sql_type_for_field(field, &config.db, &config.type_mappings);
 
             let nullable = if field.is_nullable { "" } else { " NOT NULL" };
-            let primary_key = if field.name == "id" { " PRIMARY KEY" } else { "" };
+            let primary_key = if field.name == "id" {
+                " PRIMARY KEY"
+            } else {
+                ""
+            };
 
-            columns.push(format!("    {} {}{}{}", column_name, sql_type, nullable, primary_key));
+            columns.push(format!(
+                "    {} {}{}{}",
+                column_name, sql_type, nullable, primary_key
+            ));
         }
 
         up_sql.push_str(&columns.join(",\n"));
@@ -185,8 +229,10 @@ impl DieselGenerator {
         for field in &parsed_type.fields {
             if let crate::parser::FieldType::Reference(_) = &field.field_type {
                 let column_name = to_snake_case(&field.name);
-                up_sql.push_str(&format!("\n\nCREATE INDEX idx_{}_{} ON {} ({});",
-                    table_name, column_name, table_name, column_name));
+                up_sql.push_str(&format!(
+                    "\n\nCREATE INDEX idx_{}_{} ON {} ({});",
+                    table_name, column_name, table_name, column_name
+                ));
             }
         }
 

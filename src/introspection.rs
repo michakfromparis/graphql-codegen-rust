@@ -357,10 +357,8 @@ impl Introspector {
         // Add interfaces
         if let Some(interfaces) = &type_def.interfaces {
             if !interfaces.is_empty() {
-                let interface_names: Vec<String> = interfaces
-                    .iter()
-                    .filter_map(|i| i.name.clone())
-                    .collect();
+                let interface_names: Vec<String> =
+                    interfaces.iter().filter_map(|i| i.name.clone()).collect();
                 sdl.push_str(&format!("implements {} ", interface_names.join(" & ")));
             }
         }
@@ -372,7 +370,11 @@ impl Introspector {
                 if let Some(description) = &field.description {
                     sdl.push_str(&format!("  \"\"\"\n  {}\n  \"\"\"\n", description));
                 }
-                sdl.push_str(&format!("  {}: {}\n", field.name, self.type_ref_to_sdl(&field.type_)));
+                sdl.push_str(&format!(
+                    "  {}: {}\n",
+                    field.name,
+                    self.type_ref_to_sdl(&field.type_)
+                ));
             }
         }
 
@@ -395,7 +397,11 @@ impl Introspector {
                 if let Some(description) = &field.description {
                     sdl.push_str(&format!("  \"\"\"\n  {}\n  \"\"\"\n", description));
                 }
-                sdl.push_str(&format!("  {}: {}\n", field.name, self.type_ref_to_sdl(&field.type_)));
+                sdl.push_str(&format!(
+                    "  {}: {}\n",
+                    field.name,
+                    self.type_ref_to_sdl(&field.type_)
+                ));
             }
         }
 
@@ -442,10 +448,15 @@ impl Introspector {
                     sdl.push_str(&format!("  \"\"\"\n  {}\n  \"\"\"\n", description));
                 }
                 let type_str = self.type_ref_to_sdl(&field.type_);
-                let default_value = field.default_value.as_ref()
+                let default_value = field
+                    .default_value
+                    .as_ref()
                     .map(|v| format!(" = {}", v))
                     .unwrap_or_default();
-                sdl.push_str(&format!("  {}: {}{}\n", field.name, type_str, default_value));
+                sdl.push_str(&format!(
+                    "  {}: {}{}\n",
+                    field.name, type_str, default_value
+                ));
             }
         }
 

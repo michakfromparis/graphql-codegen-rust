@@ -160,15 +160,20 @@ impl Config {
         let contents = std::fs::read_to_string(path)?;
 
         // Check if it's YAML (starts with schema: or has .yml/.yaml extension)
-        if path.extension().map_or(false, |ext| ext == "yml" || ext == "yaml")
-            || contents.trim().starts_with("schema:") {
+        if path
+            .extension()
+            .map_or(false, |ext| ext == "yml" || ext == "yaml")
+            || contents.trim().starts_with("schema:")
+        {
             #[cfg(feature = "yaml-codegen-config")]
             {
                 return Self::from_yaml_str(&contents);
             }
             #[cfg(not(feature = "yaml-codegen-config"))]
             {
-                return Err(anyhow::anyhow!("YAML config support not enabled. Rebuild with --features yaml-codegen-config"));
+                return Err(anyhow::anyhow!(
+                    "YAML config support not enabled. Rebuild with --features yaml-codegen-config"
+                ));
             }
         } else {
             Self::from_toml_str(&contents)
@@ -248,7 +253,13 @@ impl Config {
 impl From<&crate::cli::Commands> for Config {
     fn from(cmd: &crate::cli::Commands) -> Self {
         match cmd {
-            crate::cli::Commands::Init { url, orm, db, output, headers } => {
+            crate::cli::Commands::Init {
+                url,
+                orm,
+                db,
+                output,
+                headers,
+            } => {
                 let headers_map = headers.iter().cloned().collect();
 
                 Config {
