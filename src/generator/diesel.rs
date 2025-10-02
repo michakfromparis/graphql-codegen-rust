@@ -51,9 +51,12 @@ impl CodeGenerator for DieselGenerator {
     ) -> anyhow::Result<HashMap<String, String>> {
         let mut entities = HashMap::new();
 
+        // Only generate entities for Object types (not interfaces or unions)
         for (type_name, parsed_type) in &schema.types {
-            let entity_code = self.generate_entity_struct(type_name, parsed_type, config)?;
-            entities.insert(format!("{}.rs", to_snake_case(type_name)), entity_code);
+            if matches!(parsed_type.kind, crate::parser::TypeKind::Object) {
+                let entity_code = self.generate_entity_struct(type_name, parsed_type, config)?;
+                entities.insert(format!("{}.rs", to_snake_case(type_name)), entity_code);
+            }
         }
 
         Ok(entities)
@@ -66,9 +69,12 @@ impl CodeGenerator for DieselGenerator {
     ) -> anyhow::Result<Vec<MigrationFile>> {
         let mut migrations = Vec::new();
 
+        // Only generate migrations for Object types (not interfaces or unions)
         for (type_name, parsed_type) in &schema.types {
-            let migration = self.generate_table_migration(type_name, parsed_type, config)?;
-            migrations.push(migration);
+            if matches!(parsed_type.kind, crate::parser::TypeKind::Object) {
+                let migration = self.generate_table_migration(type_name, parsed_type, config)?;
+                migrations.push(migration);
+            }
         }
 
         Ok(migrations)
@@ -157,7 +163,12 @@ impl DieselGenerator {
             }
         }
 
-        output.push_str("}\n");
+        output.push_str("}\n\n");
+
+        // Generate relationships based on detected foreign keys
+        // For now, we'll add a comment about potential relationships
+        // Full relationship generation would require schema-wide analysis
+        output.push_str("// TODO: Generate joinable! macros for relationships\n");
 
         Ok(output)
     }

@@ -1,16 +1,64 @@
 # GraphQL Rust Codegen
 
+**The missing piece for offline-first applications** 🚀
+
 A Rust CLI tool that generates ORM code from GraphQL schemas. Perfect for offline-first Tauri applications that need to sync GraphQL types to local SQLite/PostgreSQL databases.
 
 ## Features
 
-- **GraphQL Schema Introspection**: Fetches and parses GraphQL schemas from remote endpoints
+- **GraphQL Schema Parsing**: Supports both GraphQL introspection and SDL schema files
 - **Multi-ORM Support**: Generates code for both Diesel and Sea-ORM
 - **Database Support**: Works with SQLite (default), PostgreSQL, and MySQL
 - **Migration Generation**: Automatically creates SQL migration files
+- **Union & Interface Support**: Handles GraphQL unions and interfaces in schema parsing
+- **Relationship Mapping**: Automatic foreign key detection and relationship generation
 - **Configuration Management**: Supports both TOML and YAML configs (compatible with GraphQL Code Generator)
 - **Type Safety**: Generates strongly-typed Rust structs from GraphQL schemas
 - **Tauri Integration**: Designed for seamless integration with Tauri app build processes
+
+## Comparison to Similar Tools
+
+### vs Cynic (Rust GraphQL Client)
+
+| Feature | graphql-rust-codegen | cynic |
+|---------|---------------------|-------|
+| **Purpose** | Database/ORM code generation | GraphQL client code generation |
+| **Output** | Diesel/Sea-ORM entities, migrations | Query builders, response types |
+| **Use Case** | Offline-first apps, data persistence | API clients, GraphQL queries |
+| **Architecture** | Database-first | Client-first |
+| **Runtime Dependencies** | ORM libraries (Diesel/Sea-ORM) | HTTP client + cynic runtime |
+| **Migration Support** | ✅ Automatic SQL migrations | ❌ N/A |
+| **Relationship Mapping** | ✅ Foreign keys, joins | ❌ N/A |
+
+**TL;DR**: cynic generates *client code* for making GraphQL requests, while graphql-rust-codegen generates *database code* for persisting GraphQL data locally.
+
+### vs GraphQL Code Generator (JavaScript/TypeScript)
+
+| Feature | graphql-rust-codegen | GraphQL Code Generator |
+|---------|---------------------|----------------------|
+| **Language** | Rust | JavaScript/TypeScript |
+| **Output** | Database ORM code | Client types, React hooks |
+| **Database Integration** | ✅ Native ORM support | ❌ No database code |
+| **Offline Capability** | ✅ Built for offline-first | ❌ Requires network |
+| **Build Tool Integration** | Cargo | Webpack, Vite, etc. |
+| **Migration Generation** | ✅ Automatic SQL migrations | ❌ N/A |
+| **Tauri Support** | ✅ Native | ⚠️ Requires adapters |
+
+**TL;DR**: GraphQL Code Generator focuses on frontend API consumption, while graphql-rust-codegen enables local data persistence and offline functionality.
+
+### vs Hasura (GraphQL Engine)
+
+| Feature | graphql-rust-codegen | Hasura |
+|---------|---------------------|--------|
+| **Architecture** | Code generation tool | GraphQL server + database |
+| **Database Schema** | Generated from GraphQL schemas | GraphQL API auto-generated |
+| **Deployment** | Build-time codegen | Runtime server |
+| **ORM Integration** | ✅ Multiple ORMs (Diesel/Sea-ORM) | ❌ No ORM code generation |
+| **Offline Support** | ✅ Local database persistence | ❌ Requires network |
+| **Customization** | Full code control | Limited customization |
+| **Performance** | Native compiled Rust | Node.js runtime |
+
+**TL;DR**: Hasura provides a GraphQL API over databases, while graphql-rust-codegen generates local database code that can sync with any GraphQL API.
 
 ## Installation
 
@@ -323,10 +371,12 @@ MIT License
 ## Roadmap
 
 - [x] YAML configuration support (compatible with GraphQL Code Generator)
-- [ ] SDL file parsing support
-- [ ] Union and interface type generation
-- [ ] Advanced relationship mapping
+- [x] SDL file parsing support
+- [x] Union and interface type generation
+- [x] Basic relationship mapping (foreign key detection)
 - [x] Sea-ORM migration generation
+- [ ] Many-to-many relationship support
+- [ ] Polymorphic association support
 - [ ] Plugin system
 - [ ] GraphQL subscription support
 - [ ] CI/CD and releases

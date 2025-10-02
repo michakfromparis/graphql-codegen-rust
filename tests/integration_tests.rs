@@ -100,6 +100,8 @@ async fn test_diesel_code_generation_compiles() {
     types.insert(
         "User".to_string(),
         ParsedType {
+            kind: graphql_codegen_rust::parser::TypeKind::Object,
+            union_members: vec![],
             name: "User".to_string(),
             fields: user_fields,
             description: Some("A user in the system".to_string()),
@@ -207,6 +209,8 @@ async fn test_sea_orm_code_generation_compiles() {
     types.insert(
         "Product".to_string(),
         ParsedType {
+            kind: graphql_codegen_rust::parser::TypeKind::Object,
+            union_members: vec![],
             name: "Product".to_string(),
             fields: product_fields,
             description: Some("A product in the catalog".to_string()),
@@ -276,6 +280,165 @@ async fn test_sea_orm_code_generation_compiles() {
 
     // Actually validate the generated code syntax to ensure it's valid Rust
     validate_generated_sea_orm_code(&mod_path, &product_entity_path);
+}
+
+/// Test SDL schema parsing
+#[test]
+fn test_sdl_parsing() {
+    let parser = graphql_codegen_rust::parser::GraphQLParser::new();
+
+    let sdl_schema = r#"
+        type User {
+            id: ID!
+            username: String!
+            email: String
+            posts: [Post!]!
+        }
+
+        type Post {
+            id: ID!
+            title: String!
+            content: String!
+            authorId: ID!
+            published: Boolean!
+            categoryId: ID
+        }
+
+        type Category {
+            id: ID!
+            name: String!
+            description: String
+        }
+
+        enum Role {
+            ADMIN
+            USER
+            MODERATOR
+        }
+
+        interface Node {
+            id: ID!
+        }
+
+        union SearchResult = User | Post
+    "#;
+
+    let result = parser.parse_from_sdl(sdl_schema);
+    assert!(result.is_ok(), "SDL parsing should succeed");
+
+    let schema = result.unwrap();
+
+    // Check that we parsed the types
+    assert!(
+        schema.types.contains_key("User"),
+        "Should contain User type"
+    );
+    assert!(
+        schema.types.contains_key("Post"),
+        "Should contain Post type"
+    );
+    assert!(
+        schema.types.contains_key("Category"),
+        "Should contain Category type"
+    );
+    assert!(
+        schema.types.contains_key("Node"),
+        "Should contain Node interface"
+    );
+    assert!(
+        schema.types.contains_key("SearchResult"),
+        "Should contain SearchResult union"
+    );
+
+    // Check that we parsed the enum
+    assert!(
+        schema.enums.contains_key("Role"),
+        "Should contain Role enum"
+    );
+
+    // Check User type fields
+    let user_type = &schema.types["User"];
+    assert_eq!(user_type.name, "User");
+    assert_eq!(user_type.fields.len(), 4);
+
+    // Check that ID field is not nullable
+    let id_field = user_type.fields.iter().find(|f| f.name == "id").unwrap();
+    assert!(!id_field.is_nullable);
+    assert!(
+        matches!(id_field.field_type, graphql_codegen_rust::parser::FieldType::Scalar(ref s) if s == "ID")
+    );
+
+    // Check that email field is nullable
+    let email_field = user_type.fields.iter().find(|f| f.name == "email").unwrap();
+    assert!(email_field.is_nullable);
+
+    // Check posts field is a list and not nullable
+    let posts_field = user_type.fields.iter().find(|f| f.name == "posts").unwrap();
+    assert!(posts_field.is_list);
+    assert!(!posts_field.is_nullable);
+
+    println!("✓ SDL parsing test passed");
+}
+
+/// Test relationship detection
+#[test]
+fn test_relationship_detection() {
+    let parser = graphql_codegen_rust::parser::GraphQLParser::new();
+
+    let sdl_schema = r#"
+        type User {
+            id: ID!
+            username: String!
+            email: String
+        }
+
+        type Post {
+            id: ID!
+            title: String!
+            content: String!
+            authorId: ID!
+            categoryId: ID
+        }
+
+        type Category {
+            id: ID!
+            name: String!
+        }
+    "#;
+
+    let result = parser.parse_from_sdl(sdl_schema);
+    assert!(result.is_ok(), "SDL parsing should succeed");
+
+    let schema = result.unwrap();
+
+    // Test relationship detection
+    let relationships = graphql_codegen_rust::generator::detect_relationships(&schema);
+
+    assert!(
+        relationships.contains_key("Post"),
+        "Post should have relationships"
+    );
+
+    let post_relationships = &relationships["Post"];
+    assert_eq!(
+        post_relationships.len(),
+        1,
+        "Post should have 1 relationship"
+    );
+
+    // Check categoryId -> Category relationship
+    let category_rel = post_relationships
+        .iter()
+        .find(|r| r.field_name == "categoryId")
+        .unwrap();
+    assert_eq!(category_rel.related_type, "Category");
+    assert!(matches!(
+        category_rel.relationship_type,
+        graphql_codegen_rust::generator::RelationshipType::BelongsTo
+    ));
+    assert!(category_rel.foreign_key);
+
+    println!("✓ Relationship detection test passed");
 }
 
 /// Test code generation against real GraphQL APIs
@@ -428,6 +591,8 @@ async fn test_codegen_performance() {
         types.insert(
             type_name,
             ParsedType {
+                kind: graphql_codegen_rust::parser::TypeKind::Object,
+                union_members: vec![],
                 name: format!("Type{}", i),
                 fields,
                 description: Some(format!("Type {} description", i)),
@@ -553,6 +718,8 @@ async fn test_fuzz_schema_generation() {
             types.insert(
                 type_name,
                 ParsedType {
+                    kind: graphql_codegen_rust::parser::TypeKind::Object,
+                    union_members: vec![],
                     name: format!("Type{}", i),
                     fields,
                     description: Some(format!("Random type {}", i)),
@@ -647,6 +814,8 @@ async fn test_multi_database_support() {
         types.insert(
             "Test".to_string(),
             ParsedType {
+                kind: graphql_codegen_rust::parser::TypeKind::Object,
+                union_members: vec![],
                 name: "Test".to_string(),
                 fields: vec![ParsedField {
                     name: "id".to_string(),
@@ -722,6 +891,8 @@ fn create_single_field_schema() -> ParsedSchema {
     types.insert(
         "Minimal".to_string(),
         ParsedType {
+            kind: graphql_codegen_rust::parser::TypeKind::Object,
+            union_members: vec![],
             name: "Minimal".to_string(),
             fields: vec![ParsedField {
                 name: "id".to_string(),
@@ -773,6 +944,8 @@ fn create_complex_relationships_schema() -> ParsedSchema {
     types.insert(
         "Author".to_string(),
         ParsedType {
+            kind: graphql_codegen_rust::parser::TypeKind::Object,
+            union_members: vec![],
             name: "Author".to_string(),
             fields: vec![
                 ParsedField {
@@ -799,6 +972,8 @@ fn create_complex_relationships_schema() -> ParsedSchema {
     types.insert(
         "BlogPost".to_string(),
         ParsedType {
+            kind: graphql_codegen_rust::parser::TypeKind::Object,
+            union_members: vec![],
             name: "BlogPost".to_string(),
             fields: vec![
                 ParsedField {
