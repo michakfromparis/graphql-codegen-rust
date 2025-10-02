@@ -151,7 +151,13 @@ pub enum TableNamingConvention {
 impl Config {
     /// Load config from a file (auto-detects YAML or TOML)
     pub fn from_file(path: &PathBuf) -> anyhow::Result<Self> {
-        let contents = fs::read_to_string(path)?;
+        let contents = fs::read_to_string(path).map_err(|e| {
+            anyhow::anyhow!(
+                "Failed to read config file '{}': {}\n\nEnsure the file exists and you have read permissions.",
+                path.display(),
+                e
+            )
+        })?;
 
         // Check if it's YAML (starts with schema: or has .yml/.yaml extension)
         if path
@@ -166,7 +172,7 @@ impl Config {
             #[cfg(not(feature = "yaml-codegen-config"))]
             {
                 Err(anyhow::anyhow!(
-                    "YAML config support not enabled. Rebuild with --features yaml-codegen-config"
+                    "YAML config support not enabled.\n\nTo use YAML config files, rebuild with:\n  cargo build --features yaml-codegen-config\n\nAlternatively, use TOML format with 'graphql-codegen-rust.toml'"
                 ))
             }
         } else {
@@ -176,14 +182,24 @@ impl Config {
 
     /// Load config from TOML string
     pub fn from_toml_str(contents: &str) -> anyhow::Result<Self> {
-        let config: Config = toml::from_str(contents)?;
+        let config: Config = toml::from_str(contents).map_err(|e| {
+            anyhow::anyhow!(
+                "Invalid TOML config format: {}\n\nExpected format:\n  url = \"https://api.example.com/graphql\"\n  orm = \"Diesel\"\n  db = \"Sqlite\"\n  output_dir = \"./generated\"\n  [headers]\n  Authorization = \"Bearer <token>\"\n\nSee documentation for complete configuration options.",
+                e
+            )
+        })?;
         Ok(config)
     }
 
     /// Load config from YAML string
     #[cfg(feature = "yaml-codegen-config")]
     pub fn from_yaml_str(contents: &str) -> anyhow::Result<Self> {
-        let yaml_config: YamlConfig = serde_yaml::from_str(contents)?;
+        let yaml_config: YamlConfig = serde_yaml::from_str(contents).map_err(|e| {
+            anyhow::anyhow!(
+                "Invalid YAML config format: {}\n\nExpected format:\n  schema:\n    url: https://api.example.com/graphql\n    headers:\n      Authorization: Bearer <token>\n  rust_codegen:\n    orm: Diesel\n    db: Sqlite\n    output_dir: ./generated\n\nSee documentation for complete configuration options.",
+                e
+            )
+        })?;
 
         // Extract schema info
         let (url, headers) = match yaml_config.schema {
@@ -241,7 +257,7 @@ impl Config {
         }
 
         Err(anyhow::anyhow!(
-            "No config file found. Expected codegen.yml, codegen.yaml, or graphql-codegen-rust.toml"
+            "No config file found in current directory.\n\nExpected one of:\n  - codegen.yml\n  - codegen.yaml\n  - graphql-codegen-rust.toml\n\nTo create a new project, run:\n  graphql-codegen-rust init --url <your-graphql-endpoint>\n\nTo specify a config file explicitly, run:\n  graphql-codegen-rust generate --config <path-to-config>"
         ))
     }
 }
