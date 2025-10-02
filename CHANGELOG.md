@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.0] - 2025-10-02
+
 ### Added
 - Initial release of GraphQL Rust Codegen
 - Support for generating Diesel ORM code from GraphQL schemas
@@ -34,7 +36,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added comprehensive linting and formatting checks
 - Upgraded Sea-ORM from 0.12 to 1.1.16 (fixes SQLx security vulnerability)
 - Updated CI to use Rust 1.86.0 for MSRV compatibility
-
-## [0.1.0] - 2025-10-02
-
-Initial release with core GraphQL-to-Rust ORM code generation functionality.

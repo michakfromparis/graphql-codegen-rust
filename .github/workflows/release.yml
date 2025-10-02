@@ -65,11 +65,8 @@ jobs:
       run: |
         # Extract changelog entries for this version
         if [ -f "CHANGELOG.md" ]; then
-          # Try to extract version-specific notes
-          NOTES=$(sed -n "/^## \[${{ steps.version.outputs.version }}\]/,/^## \[/p" CHANGELOG.md | head -n -1)
-          if [ -z "$NOTES" ]; then
-            NOTES=$(sed -n "/^## \[${{ steps.version.outputs.version }}\]/,/^## \[/p" CHANGELOG.md | head -n -1)
-          fi
+          # Extract content between version headers
+          NOTES=$(sed -n "/^## \[${{ steps.version.outputs.version }}\]/,/^## \[/p" CHANGELOG.md)
           if [ -z "$NOTES" ]; then
             NOTES="Release ${{ steps.version.outputs.version }}"
           fi
