@@ -143,7 +143,7 @@ impl GraphQLParser {
 
         if let Some(introspection_fields) = &type_def.fields {
             for field in introspection_fields {
-                if let Some(parsed_field) = self.parse_field(&field) {
+                if let Some(parsed_field) = self.parse_field(field) {
                     fields.push(parsed_field);
                 }
             }

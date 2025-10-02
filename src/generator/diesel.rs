@@ -3,8 +3,8 @@ use std::collections::HashMap;
 use crate::cli::DatabaseType;
 use crate::config::Config;
 use crate::generator::{
-    diesel_column_type_for_field, rust_type_for_field, sql_type_for_field, to_snake_case,
-    CodeGenerator, MigrationFile,
+    CodeGenerator, MigrationFile, diesel_column_type_for_field, rust_type_for_field,
+    sql_type_for_field, to_snake_case,
 };
 use crate::parser::{ParsedEnum, ParsedSchema, ParsedType};
 
@@ -13,6 +13,12 @@ pub struct DieselGenerator;
 impl DieselGenerator {
     pub fn new() -> Self {
         Self
+    }
+}
+
+impl Default for DieselGenerator {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -26,13 +32,13 @@ impl CodeGenerator for DieselGenerator {
         // Generate table! macros for each type
         for (type_name, parsed_type) in &schema.types {
             output.push_str(&self.generate_table_macro(type_name, parsed_type, config)?);
-            output.push_str("\n");
+            output.push('\n');
         }
 
         // Generate enum types if needed
         for (enum_name, parsed_enum) in &schema.enums {
             output.push_str(&self.generate_enum_type(enum_name, parsed_enum)?);
-            output.push_str("\n");
+            output.push('\n');
         }
 
         Ok(output)

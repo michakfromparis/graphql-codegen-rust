@@ -102,10 +102,12 @@ fn test_config_auto_detect() {
     // This test assumes no config files exist in the test environment
     let result = Config::auto_detect_config();
     assert!(result.is_err());
-    assert!(result
-        .unwrap_err()
-        .to_string()
-        .contains("No config file found"));
+    assert!(
+        result
+            .unwrap_err()
+            .to_string()
+            .contains("No config file found")
+    );
 }
 
 #[test]

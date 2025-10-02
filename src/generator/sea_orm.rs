@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::cli::DatabaseType;
 use crate::config::Config;
 use crate::generator::{
-    rust_type_for_field, sql_type_for_field, to_snake_case, CodeGenerator, MigrationFile,
+    CodeGenerator, MigrationFile, rust_type_for_field, sql_type_for_field, to_snake_case,
 };
 use crate::parser::{ParsedEnum, ParsedSchema, ParsedType};
 
@@ -12,6 +12,12 @@ pub struct SeaOrmGenerator;
 impl SeaOrmGenerator {
     pub fn new() -> Self {
         Self
+    }
+}
+
+impl Default for SeaOrmGenerator {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -80,7 +86,7 @@ impl SeaOrmGenerator {
             "#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Deserialize, Serialize)]\n",
         );
         output.push_str(&format!("#[sea_orm(table_name = \"{}\")]\n", table_name));
-        output.push_str(&format!("pub struct Model {{\n"));
+        output.push_str("pub struct Model {\n");
 
         for field in &parsed_type.fields {
             let field_name = to_snake_case(&field.name);
