@@ -2,7 +2,7 @@
 name = "graphql-rust-codegen"
 version = "0.1.0"
 edition = "2021"
-rust-version = "1.70"
+rust-version = "1.82"
 authors = ["Michel Courtine <github@michak.net>"]  # Update with your info
 description = "Generate Rust ORM code from GraphQL schemas"
 documentation = "https://docs.rs/graphql-rust-codegen"
