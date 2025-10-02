@@ -25,7 +25,7 @@ check-tools:
 .PHONY: install-deps
 install-deps:
 	@echo "Installing development dependencies..."
-	cargo install cargo-audit --version 0.20.0 || echo "cargo-audit already installed"
+	cargo install cargo-audit --version 0.21.2 || echo "cargo-audit already installed"
 	cargo install cargo-deny --version 0.18.3 || echo "cargo-deny already installed"
 	cargo install cargo-llvm-cov || echo "cargo-llvm-cov already installed"
 	@echo "✅ Development dependencies installed"
