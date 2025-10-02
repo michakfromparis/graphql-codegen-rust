@@ -163,7 +163,12 @@ impl DieselGenerator {
             }
         }
 
-        output.push_str("}\n");
+        output.push_str("}\n\n");
+
+        // Generate relationships based on detected foreign keys
+        // For now, we'll add a comment about potential relationships
+        // Full relationship generation would require schema-wide analysis
+        output.push_str("// TODO: Generate joinable! macros for relationships\n");
 
         Ok(output)
     }
