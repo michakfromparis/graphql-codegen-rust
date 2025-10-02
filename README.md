@@ -17,15 +17,15 @@ A Rust CLI tool that generates ORM code from GraphQL schemas. Perfect for offlin
 ### From Source
 
 ```bash
-git clone https://github.com/yourusername/graphql-rust-codegen.git
-cd graphql-rust-codegen
+git clone https://github.com/yourusername/graphql-codegen-rust.git
+cd graphql-codegen-rust
 cargo build --release
 ```
 
 ### From Crates.io (future)
 
 ```bash
-cargo install graphql-rust-codegen
+cargo install graphql-codegen-rust
 ```
 
 ## Usage
@@ -33,15 +33,15 @@ cargo install graphql-rust-codegen
 ### Simple Code Generation (Auto-detects config)
 
 ```bash
-graphql-rust-codegen
+graphql-codegen-rust
 ```
 
-Automatically detects `codegen.yml`, `codegen.yaml`, or `graphql-rust-codegen.toml` and generates code.
+Automatically detects `codegen.yml`, `codegen.yaml`, or `graphql-codegen-rust.toml` and generates code.
 
 ### Initialize a New Project
 
 ```bash
-graphql-rust-codegen init \
+graphql-codegen-rust init \
   --url https://api.example.com/graphql \
   --orm diesel \
   --db sqlite \
@@ -50,13 +50,13 @@ graphql-rust-codegen init \
 
 This will:
 1. Introspect the GraphQL schema from the endpoint
-2. Create a configuration file (`graphql-rust-codegen.toml`)
+2. Create a configuration file (`graphql-codegen-rust.toml`)
 3. Generate Diesel schema definitions, entity structs, and migration files
 
 ### Explicit Code Generation
 
 ```bash
-graphql-rust-codegen generate --config codegen.yml
+graphql-codegen-rust generate --config codegen.yml
 ```
 
 Regenerates code from the specified configuration file.
@@ -68,7 +68,7 @@ In your `package.json`, chain with TS codegen:
 ```json
 {
   "scripts": {
-    "codegen": "graphql-codegen --config codegen.yml && graphql-rust-codegen"
+    "codegen": "graphql-codegen --config codegen.yml && graphql-codegen-rust"
   }
 }
 ```
@@ -126,7 +126,7 @@ DateTime = "chrono::NaiveDateTime"
 
 ```
 output_dir/
-├── graphql-rust-codegen.toml  # or codegen.yml
+├── graphql-codegen-rust.toml  # or codegen.yml
 ├── src/
 │   ├── schema.rs              # Diesel table! macros
 │   └── entities/              # Entity structs
@@ -156,7 +156,7 @@ output_dir/
 ### Vendure Integration
 
 ```bash
-graphql-rust-codegen init \
+graphql-codegen-rust init \
   --url https://demo.vendure.io/shop-api \
   --orm diesel \
   --db sqlite \
@@ -170,7 +170,7 @@ Add to your `package.json`:
 ```json
 {
   "scripts": {
-    "codegen": "graphql-codegen --config codegen.yml && graphql-rust-codegen"
+    "codegen": "graphql-codegen --config codegen.yml && graphql-codegen-rust"
   }
 }
 ```
@@ -182,7 +182,7 @@ use std::process::Command;
 
 fn main() {
     // Regenerate database code before build
-    Command::new("graphql-rust-codegen")
+    Command::new("graphql-codegen-rust")
         .status()
         .expect("Failed to regenerate database code");
 
