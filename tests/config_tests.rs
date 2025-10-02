@@ -35,15 +35,16 @@ Authorization = "Bearer token123"
 #[test]
 fn test_config_from_yaml_string() {
     let yaml_content = r#"
-schema: https://api.example.com/graphql
+schema:
+  url: https://api.example.com/graphql
+  headers:
+    Authorization: "Bearer token123"
 rust_codegen:
   orm: Diesel
   db: Sqlite
   output_dir: ./generated
   generate_migrations: true
   generate_entities: true
-  headers:
-    Authorization: "Bearer token123"
 "#;
 
     let config = Config::from_yaml_str(yaml_content).unwrap();
