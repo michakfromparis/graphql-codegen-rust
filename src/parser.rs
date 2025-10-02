@@ -19,11 +19,15 @@ pub enum TypeKind {
 
 #[derive(Debug, Clone)]
 pub struct ParsedType {
+    #[allow(dead_code)]
     pub name: String,
     pub kind: TypeKind,
     pub fields: Vec<ParsedField>,
+    #[allow(dead_code)]
     pub description: Option<String>,
+    #[allow(dead_code)]
     pub interfaces: Vec<String>, // For objects and interfaces: implemented interfaces
+    #[allow(dead_code)]
     pub union_members: Vec<String>, // For unions: member types
 }
 
@@ -475,6 +479,7 @@ impl GraphQLParser {
         })
     }
 
+    #[allow(clippy::only_used_in_recursion)]
     fn parse_sdl_type<'a>(
         &self,
         field_type: &graphql_parser::schema::Type<'a, &'a str>,

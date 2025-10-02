@@ -198,33 +198,25 @@ impl SeaOrmGenerator {
                 if related_type
                     .chars()
                     .next()
-                    .map_or(false, |c| c.is_uppercase())
+                    .is_some_and(|c| c.is_uppercase())
                 {
                     if !has_relationships {
                         output.push_str("// Relationships\n");
                         has_relationships = true;
                     }
                     let _relation_name = to_snake_case(&field.name[..field.name.len() - 2]);
-                    output.push_str(&format!(
-                        "#[derive(Clone, Debug, PartialEq, DeriveRelation)]\n"
-                    ));
+                    output.push_str("#[derive(Clone, Debug, PartialEq, DeriveRelation)]\n");
                     output.push_str(&format!("#[sea_orm(table_name = \"{}\")]\n", table_name));
-                    output.push_str(&format!("pub enum Relation {{\n"));
-                    output.push_str(&format!("    #[sea_orm(\n"));
-                    output.push_str(&format!(
-                        "        belongs_to = \"super::{}::Entity\",\n",
-                        related_type
-                    ));
+                    output.push_str("pub enum Relation {\n");
+                    output.push_str("    #[sea_orm(\n");
+                    output.push_str(&format!("        belongs_to = \"super::{}::Entity\",\n", related_type));
                     output.push_str(&format!("        from = \"Column::{}\",\n", field.name));
-                    output.push_str(&format!(
-                        "        to = \"super::{}::Column::Id\",\n",
-                        related_type
-                    ));
-                    output.push_str(&format!("        on_update = \"Cascade\",\n"));
-                    output.push_str(&format!("        on_delete = \"Cascade\"\n"));
-                    output.push_str(&format!("    )]\n"));
+                    output.push_str(&format!("        to = \"super::{}::Column::Id\",\n", related_type));
+                    output.push_str("        on_update = \"Cascade\",\n");
+                    output.push_str("        on_delete = \"Cascade\"\n");
+                    output.push_str("    )]\n");
                     output.push_str(&format!("    {},\n", related_type));
-                    output.push_str(&format!("}}\n\n"));
+                    output.push_str("}\n\n");
                 }
             }
         }

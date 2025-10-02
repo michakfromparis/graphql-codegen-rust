@@ -174,6 +174,7 @@ pub fn sql_type_for_field(
 }
 
 /// Detect if a field is likely a foreign key relationship
+#[allow(dead_code)]
 pub fn is_foreign_key_field(field: &ParsedField) -> Option<String> {
     let field_name = &field.name;
 
@@ -201,6 +202,7 @@ pub fn is_foreign_key_field(field: &ParsedField) -> Option<String> {
 }
 
 /// Detect relationships between types in the schema
+#[allow(dead_code)]
 pub fn detect_relationships(
     schema: &crate::parser::ParsedSchema,
 ) -> HashMap<String, Vec<Relationship>> {
@@ -237,6 +239,7 @@ pub fn detect_relationships(
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct Relationship {
     pub field_name: String,
     pub related_type: String,
@@ -245,6 +248,7 @@ pub struct Relationship {
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub enum RelationshipType {
     BelongsTo,
     HasMany,
