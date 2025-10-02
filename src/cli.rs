@@ -8,6 +8,10 @@ use std::path::PathBuf;
 pub struct Cli {
     #[command(subcommand)]
     pub command: Option<Commands>,
+
+    /// Increase verbosity level (-v, -vv, -vvv)
+    #[arg(short, long, action = clap::ArgAction::Count)]
+    pub verbose: u8,
 }
 
 #[derive(Subcommand)]
@@ -67,7 +71,20 @@ pub enum DatabaseType {
 fn parse_header(s: &str) -> Result<(String, String), String> {
     let parts: Vec<&str> = s.splitn(2, ':').collect();
     if parts.len() != 2 {
-        return Err("Header must be in key:value format".to_string());
+        return Err(format!(
+            "Invalid header format '{}'. Headers must be in 'key:value' format.\nExample: --header 'Authorization:Bearer token123'",
+            s
+        ));
     }
-    Ok((parts[0].trim().to_string(), parts[1].trim().to_string()))
+    let key = parts[0].trim();
+    let value = parts[1].trim();
+
+    if key.is_empty() {
+        return Err("Header key cannot be empty. Format: 'key:value'".to_string());
+    }
+    if value.is_empty() {
+        return Err("Header value cannot be empty. Format: 'key:value'".to_string());
+    }
+
+    Ok((key.to_string(), value.to_string()))
 }
