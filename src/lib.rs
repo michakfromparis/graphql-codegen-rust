@@ -5,16 +5,20 @@
 //!
 //! # Example
 //!
-//! ```rust
-//! use graphql_rust_codegen::{Config, CodeGenerator};
+//! ```rust,no_run
+//! use graphql_rust_codegen::{CodeGenerator, Config};
+//! use std::path::PathBuf;
 //!
+//! # async fn example() -> anyhow::Result<()> {
 //! // Load configuration
-//! let config = Config::from_file("codegen.yml")?;
+//! let config_path = PathBuf::from("codegen.yml");
+//! let config = Config::from_file(&config_path)?;
 //!
 //! // Generate code
 //! let generator = CodeGenerator::new(&config.orm);
-//! generator.generate_from_config(&config)?;
-//! # Ok::<(), Box<dyn std::error::Error>>(())
+//! generator.generate_from_config(&config).await?;
+//! # Ok(())
+//! # }
 //! ```
 
 pub mod cli;
