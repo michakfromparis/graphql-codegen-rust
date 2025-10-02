@@ -1,9 +1,9 @@
-use graphql_parser::schema::*;
 use std::collections::HashMap;
 
 use crate::introspection::{Introspector, Schema as IntrospectionSchema};
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct ParsedSchema {
     pub types: HashMap<String, ParsedType>,
     pub enums: HashMap<String, ParsedEnum>,
@@ -11,6 +11,7 @@ pub struct ParsedSchema {
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct ParsedType {
     pub name: String,
     pub fields: Vec<ParsedField>,
@@ -19,6 +20,7 @@ pub struct ParsedType {
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct ParsedField {
     pub name: String,
     pub field_type: FieldType,
@@ -28,6 +30,7 @@ pub struct ParsedField {
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub enum FieldType {
     Scalar(String),
     Reference(String),
@@ -35,6 +38,7 @@ pub enum FieldType {
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct ParsedEnum {
     pub name: String,
     pub values: Vec<String>,
@@ -45,6 +49,7 @@ pub struct GraphQLParser {
     introspector: Introspector,
 }
 
+#[allow(dead_code)]
 impl GraphQLParser {
     pub fn new() -> Self {
         Self {
@@ -69,7 +74,7 @@ impl GraphQLParser {
     }
 
     /// Parse schema from SDL string (simplified version)
-    pub fn parse_from_sdl_simple(&self, sdl: &str) -> anyhow::Result<ParsedSchema> {
+    pub fn parse_from_sdl_simple(&self, _sdl: &str) -> anyhow::Result<ParsedSchema> {
         // For now, just return introspection-based parsing
         // TODO: Implement proper SDL parsing
         Err(anyhow::anyhow!("SDL parsing not yet implemented, use introspection"))

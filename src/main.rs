@@ -1,5 +1,4 @@
 use clap::Parser;
-use std::path::PathBuf;
 
 mod cli;
 mod config;
@@ -49,7 +48,11 @@ async fn main() -> anyhow::Result<()> {
             println!("Generating code...");
 
             // Find config file
-            let config_path = config.unwrap_or_else(|| Config::auto_detect_config()?);
+            let config_path = if let Some(path) = config {
+                path
+            } else {
+                Config::auto_detect_config()?
+            };
 
             let mut config = Config::from_file(&config_path)?;
 

@@ -24,7 +24,7 @@ pub mod introspection;
 pub mod parser;
 
 pub use config::Config;
-pub use generator::{CodeGenerator, create_generator};
+pub use generator::create_generator;
 
 use std::path::Path;
 
@@ -54,7 +54,8 @@ impl CodeGenerator {
 
 /// Convenience function to generate code from a config file
 pub async fn generate_from_config_file<P: AsRef<Path>>(config_path: P) -> anyhow::Result<()> {
-    let config = Config::from_file(config_path.as_ref().to_path_buf())?;
+    let path_buf = config_path.as_ref().to_path_buf();
+    let config = Config::from_file(&path_buf)?;
     let generator = CodeGenerator::new(&config.orm);
     generator.generate_from_config(&config).await
 }

@@ -1,4 +1,4 @@
-use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
+use reqwest::header::{HeaderName, HeaderValue};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -25,6 +25,7 @@ struct IntrospectionData {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 pub struct Schema {
     pub query_type: Option<TypeRef>,
     pub mutation_type: Option<TypeRef>,
@@ -34,6 +35,7 @@ pub struct Schema {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 pub struct Type {
     pub name: Option<String>,
     pub kind: TypeKind,
@@ -67,6 +69,7 @@ pub struct TypeRef {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 pub struct Field {
     pub name: String,
     pub description: Option<String>,
@@ -78,6 +81,7 @@ pub struct Field {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 pub struct InputValue {
     pub name: String,
     pub description: Option<String>,
@@ -86,6 +90,7 @@ pub struct InputValue {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 pub struct EnumValue {
     pub name: String,
     pub description: Option<String>,
@@ -95,6 +100,7 @@ pub struct EnumValue {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 pub struct Directive {
     pub name: String,
     pub description: Option<String>,
@@ -130,6 +136,7 @@ pub struct Introspector {
     client: reqwest::Client,
 }
 
+#[allow(dead_code)]
 impl Introspector {
     pub fn new() -> Self {
         Self {

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::cli::DatabaseType;
 use crate::config::Config;
 use crate::generator::{sql_type_for_field, to_snake_case, CodeGenerator, MigrationFile, rust_type_for_field};
-use crate::parser::{ParsedEnum, ParsedField, ParsedSchema, ParsedType};
+use crate::parser::{ParsedEnum, ParsedSchema, ParsedType};
 
 pub struct SeaOrmGenerator;
 
@@ -14,7 +14,7 @@ impl SeaOrmGenerator {
 }
 
 impl CodeGenerator for SeaOrmGenerator {
-    fn generate_schema(&self, schema: &ParsedSchema, config: &Config) -> anyhow::Result<String> {
+    fn generate_schema(&self, _schema: &ParsedSchema, _config: &Config) -> anyhow::Result<String> {
         // Sea-ORM doesn't have a schema.rs equivalent like Diesel
         // Return empty string or basic setup
         Ok("// Sea-ORM entities are defined in separate files\n".to_string())
@@ -51,7 +51,7 @@ impl CodeGenerator for SeaOrmGenerator {
 
 impl SeaOrmGenerator {
     fn generate_entity_struct(&self, type_name: &str, parsed_type: &ParsedType, config: &Config) -> anyhow::Result<String> {
-        let struct_name = type_name.to_string();
+        let _struct_name = type_name.to_string();
         let table_name = to_snake_case(type_name);
 
         let mut output = String::new();

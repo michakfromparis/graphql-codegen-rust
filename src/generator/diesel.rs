@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::cli::DatabaseType;
 use crate::config::Config;
 use crate::generator::{diesel_column_type_for_field, sql_type_for_field, to_snake_case, CodeGenerator, MigrationFile, rust_type_for_field};
-use crate::parser::{ParsedEnum, ParsedField, ParsedSchema, ParsedType};
+use crate::parser::{ParsedEnum, ParsedSchema, ParsedType};
 
 pub struct DieselGenerator;
 

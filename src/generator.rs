@@ -1,9 +1,8 @@
 use std::collections::HashMap;
-use std::path::PathBuf;
 
 use crate::cli::{DatabaseType, OrmType};
 use crate::config::Config;
-use crate::parser::{ParsedEnum, ParsedField, ParsedSchema, ParsedType};
+use crate::parser::{ParsedField, ParsedSchema};
 
 pub mod diesel;
 pub mod sea_orm;
@@ -70,7 +69,7 @@ pub fn rust_type_for_field(field: &ParsedField, db_type: &DatabaseType, scalar_m
                 }
             }
         }
-        crate::parser::FieldType::Reference(type_name) => {
+        crate::parser::FieldType::Reference(_type_name) => {
             // For references, we'll assume they're other entities
             // In a real implementation, we'd need to handle foreign keys
             match db_type {
