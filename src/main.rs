@@ -110,7 +110,6 @@ async fn main() -> anyhow::Result<()> {
         }
         Some(Commands::Generate {
             config,
-            types: _,
             output,
         }) => {
             logger.info("Generating code...");

@@ -97,7 +97,6 @@ fn test_cli_generate_command() {
     match cli.command {
         Some(Commands::Generate {
             config,
-            types: _,
             output,
         }) => {
             assert_eq!(config, Some(std::path::PathBuf::from("codegen.yml")));
@@ -120,7 +119,6 @@ fn test_cli_generate_with_output() {
     match cli.command {
         Some(Commands::Generate {
             config,
-            types: _,
             output,
         }) => {
             assert!(config.is_none());

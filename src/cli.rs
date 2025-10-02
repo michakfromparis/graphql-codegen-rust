@@ -45,10 +45,6 @@ pub enum Commands {
         #[arg(short, long)]
         config: Option<PathBuf>,
 
-        /// Specific types to generate (comma-separated)
-        #[arg(short, long)]
-        types: Option<Vec<String>>,
-
         /// Output directory (overrides config)
         #[arg(short, long)]
         output: Option<PathBuf>,
