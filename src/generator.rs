@@ -51,7 +51,7 @@ pub fn to_snake_case(s: &str) -> String {
                     true
                 } else if prev.is_uppercase() {
                     // Check if next character exists and is lowercase
-                    chars.get(i + 1).map_or(false, |&next| next.is_lowercase())
+                    chars.get(i + 1).is_some_and(|&next| next.is_lowercase())
                 } else {
                     false
                 };

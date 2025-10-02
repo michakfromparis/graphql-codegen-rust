@@ -286,64 +286,6 @@ impl Introspector {
         Ok(schema)
     }
 
-    /// Convert introspection schema to SDL string
-    pub fn schema_to_sdl(&self, schema: &Schema) -> String {
-        let mut sdl = String::new();
-
-        // Add schema definition
-        sdl.push_str("schema {\n");
-        if let Some(query) = &schema.query_type {
-            if let Some(name) = &query.name {
-                sdl.push_str(&format!("  query: {}\n", name));
-            }
-        }
-        if let Some(mutation) = &schema.mutation_type {
-            if let Some(name) = &mutation.name {
-                sdl.push_str(&format!("  mutation: {}\n", name));
-            }
-        }
-        if let Some(subscription) = &schema.subscription_type {
-            if let Some(name) = &subscription.name {
-                sdl.push_str(&format!("  subscription: {}\n", name));
-            }
-        }
-        sdl.push_str("}\n\n");
-
-        // Add types
-        for type_def in &schema.types {
-            if let Some(name) = &type_def.name {
-                // Skip introspection types
-                if name.starts_with("__") {
-                    continue;
-                }
-
-                match type_def.kind {
-                    TypeKind::Object => {
-                        sdl.push_str(&self.object_type_to_sdl(type_def));
-                    }
-                    TypeKind::Interface => {
-                        sdl.push_str(&self.interface_type_to_sdl(type_def));
-                    }
-                    TypeKind::Enum => {
-                        sdl.push_str(&self.enum_type_to_sdl(type_def));
-                    }
-                    TypeKind::InputObject => {
-                        sdl.push_str(&self.input_object_type_to_sdl(type_def));
-                    }
-                    TypeKind::Scalar => {
-                        sdl.push_str(&self.scalar_type_to_sdl(type_def));
-                    }
-                    TypeKind::Union => {
-                        sdl.push_str(&self.union_type_to_sdl(type_def));
-                    }
-                    _ => {} // Skip List, NonNull as they're handled in type refs
-                }
-            }
-        }
-
-        sdl
-    }
-
     fn object_type_to_sdl(&self, type_def: &Type) -> String {
         let mut sdl = String::new();
 
@@ -524,5 +466,63 @@ impl Introspector {
         }
 
         result
+    }
+
+    /// Convert introspection schema to SDL string
+    pub fn schema_to_sdl(&self, schema: &Schema) -> String {
+        let mut sdl = String::new();
+
+        // Add schema definition
+        sdl.push_str("schema {\n");
+        if let Some(query) = &schema.query_type {
+            if let Some(name) = &query.name {
+                sdl.push_str(&format!("  query: {}\n", name));
+            }
+        }
+        if let Some(mutation) = &schema.mutation_type {
+            if let Some(name) = &mutation.name {
+                sdl.push_str(&format!("  mutation: {}\n", name));
+            }
+        }
+        if let Some(subscription) = &schema.subscription_type {
+            if let Some(name) = &subscription.name {
+                sdl.push_str(&format!("  subscription: {}\n", name));
+            }
+        }
+        sdl.push_str("}\n\n");
+
+        // Add types
+        for type_def in &schema.types {
+            if let Some(name) = &type_def.name {
+                // Skip introspection types
+                if name.starts_with("__") {
+                    continue;
+                }
+
+                match type_def.kind {
+                    TypeKind::Object => {
+                        sdl.push_str(&self.object_type_to_sdl(type_def));
+                    }
+                    TypeKind::Interface => {
+                        sdl.push_str(&self.interface_type_to_sdl(type_def));
+                    }
+                    TypeKind::Enum => {
+                        sdl.push_str(&self.enum_type_to_sdl(type_def));
+                    }
+                    TypeKind::InputObject => {
+                        sdl.push_str(&self.input_object_type_to_sdl(type_def));
+                    }
+                    TypeKind::Scalar => {
+                        sdl.push_str(&self.scalar_type_to_sdl(type_def));
+                    }
+                    TypeKind::Union => {
+                        sdl.push_str(&self.union_type_to_sdl(type_def));
+                    }
+                    _ => {} // Skip List, NonNull as they're handled in type refs
+                }
+            }
+        }
+
+        sdl
     }
 }

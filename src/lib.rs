@@ -54,7 +54,7 @@ impl CodeGenerator {
             .await?;
 
         // Generate all code
-        generate_all_code(&schema, config, &self.inner).await
+        generate_all_code(&schema, config, &*self.inner).await
     }
 }
 
@@ -69,7 +69,7 @@ pub async fn generate_from_config_file<P: AsRef<Path>>(config_path: P) -> anyhow
 async fn generate_all_code(
     schema: &parser::ParsedSchema,
     config: &Config,
-    generator: &Box<dyn generator::CodeGenerator>,
+    generator: &dyn generator::CodeGenerator,
 ) -> anyhow::Result<()> {
     // Create output directory structure
     std::fs::create_dir_all(&config.output_dir)?;
