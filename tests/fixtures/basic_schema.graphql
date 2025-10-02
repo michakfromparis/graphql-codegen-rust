@@ -1,0 +1,34 @@
+type User {
+  id: ID!
+  name: String!
+  email: String
+  createdAt: String!
+  updatedAt: String!
+}
+
+type Product {
+  id: ID!
+  title: String!
+  description: String
+  price: Float!
+  inStock: Boolean!
+  categoryId: ID!
+}
+
+type Category {
+  id: ID!
+  name: String!
+  description: String
+}
+
+enum UserRole {
+  ADMIN
+  USER
+  MODERATOR
+}
+
+enum ProductStatus {
+  ACTIVE
+  INACTIVE
+  DISCONTINUED
+}

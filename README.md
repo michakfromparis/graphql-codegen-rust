@@ -326,7 +326,7 @@ MIT License
 - [ ] SDL file parsing support
 - [ ] Union and interface type generation
 - [ ] Advanced relationship mapping
-- [ ] Sea-ORM migration generation
+- [x] Sea-ORM migration generation
 - [ ] Plugin system
 - [ ] GraphQL subscription support
 - [ ] CI/CD and releases

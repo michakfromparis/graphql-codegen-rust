@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::path::PathBuf;
 
+use fs_err as fs;
+
 use crate::cli::{DatabaseType, OrmType};
 
 /// YAML configuration format compatible with GraphQL Code Generator
@@ -149,7 +151,7 @@ pub enum TableNamingConvention {
 impl Config {
     /// Load config from a file (auto-detects YAML or TOML)
     pub fn from_file(path: &PathBuf) -> anyhow::Result<Self> {
-        let contents = std::fs::read_to_string(path)?;
+        let contents = fs::read_to_string(path)?;
 
         // Check if it's YAML (starts with schema: or has .yml/.yaml extension)
         if path
@@ -209,7 +211,7 @@ impl Config {
     /// Save config to a TOML file
     pub fn save_to_file(&self, path: &PathBuf) -> anyhow::Result<()> {
         let toml = toml::to_string_pretty(self)?;
-        std::fs::write(path, toml)?;
+        fs::write(path, toml)?;
         Ok(())
     }
 

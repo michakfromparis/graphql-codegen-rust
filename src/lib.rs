@@ -32,6 +32,8 @@ pub use generator::create_generator;
 
 use std::path::Path;
 
+use fs_err as fs;
+
 /// Main code generator interface
 pub struct CodeGenerator {
     inner: Box<dyn generator::CodeGenerator>,
@@ -66,51 +68,56 @@ pub async fn generate_from_config_file<P: AsRef<Path>>(config_path: P) -> anyhow
     generator.generate_from_config(&config).await
 }
 
-async fn generate_all_code(
+pub async fn generate_all_code(
     schema: &parser::ParsedSchema,
     config: &Config,
     generator: &dyn generator::CodeGenerator,
 ) -> anyhow::Result<()> {
     // Create output directory structure
-    std::fs::create_dir_all(&config.output_dir)?;
+    fs::create_dir_all(&config.output_dir)?;
     let src_dir = config.output_dir.join("src");
-    std::fs::create_dir_all(&src_dir)?;
+    fs::create_dir_all(&src_dir)?;
 
-    // Generate schema file (for Diesel)
+    // Generate schema file
+    let schema_code = generator.generate_schema(schema, config)?;
     if config.orm == cli::OrmType::Diesel {
-        let schema_code = generator.generate_schema(schema, config)?;
         let schema_path = src_dir.join("schema.rs");
-        std::fs::write(schema_path, schema_code)?;
+        fs::write(schema_path, schema_code)?;
         println!("Generated schema.rs");
+    } else if config.orm == cli::OrmType::SeaOrm {
+        // Sea-ORM generates a mod.rs file at the root
+        let mod_path = config.output_dir.join("mod.rs");
+        fs::write(mod_path, schema_code)?;
+        println!("Generated mod.rs");
     }
 
     // Generate entity files
     let entities = generator.generate_entities(schema, config)?;
     let entities_dir = src_dir.join("entities");
-    std::fs::create_dir_all(&entities_dir)?;
+    fs::create_dir_all(&entities_dir)?;
 
     let entity_count = entities.len();
     for (filename, code) in entities {
         let entity_path = entities_dir.join(filename);
-        std::fs::write(entity_path, code)?;
+        fs::write(entity_path, code)?;
     }
     println!("Generated {} entity files", entity_count);
 
     // Generate migrations
     let migrations = generator.generate_migrations(schema, config)?;
     let migrations_dir = config.output_dir.join("migrations");
-    std::fs::create_dir_all(&migrations_dir)?;
+    fs::create_dir_all(&migrations_dir)?;
 
     let migration_count = migrations.len();
     for migration in migrations {
         let migration_dir = migrations_dir.join(&migration.name);
-        std::fs::create_dir_all(&migration_dir)?;
+        fs::create_dir_all(&migration_dir)?;
 
         let up_path = migration_dir.join("up.sql");
         let down_path = migration_dir.join("down.sql");
 
-        std::fs::write(up_path, migration.up_sql)?;
-        std::fs::write(down_path, migration.down_sql)?;
+        fs::write(up_path, migration.up_sql)?;
+        fs::write(down_path, migration.down_sql)?;
     }
     println!("Generated {} migrations", migration_count);
 
