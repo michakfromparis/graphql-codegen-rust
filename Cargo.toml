@@ -3,11 +3,11 @@ name = "graphql-codegen-rust"
 version = "0.1.0"
 edition = "2024"
 rust-version = "1.86"
-authors = ["Michel Courtine <github@michak.net>"]  # Update with your info
+authors = ["Michel Courtine <github@michak.net>"]
 description = "Generate Rust ORM code from GraphQL schemas"
 documentation = "https://docs.rs/graphql-codegen-rust"
-homepage = "https://github.com/michakfromparis/graphql-codegen-rust"  # Update with your repo
-repository = "https://github.com/michakfromparis/graphql-codegen-rust"  # Update with your repo
+homepage = "https://github.com/michakfromparis/graphql-codegen-rust"
+repository = "https://github.com/michakfromparis/graphql-codegen-rust"
 readme = "README.md"
 keywords = ["graphql", "codegen", "orm", "diesel", "sea-orm"]
 categories = ["development-tools", "command-line-utilities"]
@@ -61,6 +61,7 @@ sea-orm = { version = "1.0", features = ["sqlx-sqlite", "sqlx-postgres", "runtim
 
 [dev-dependencies]
 tempfile = "3.0"
+tokio = { version = "1.0", features = ["full"] }
 
 [features]
 default = []
