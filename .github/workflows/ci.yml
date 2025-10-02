@@ -84,20 +84,21 @@ jobs:
     - name: Test documentation
       run: cargo test --doc ${{ matrix.features != '' && format('--features {0}', matrix.features) || '' }}
 
-  # Security audit temporarily disabled due to Rust version compatibility
-  # TODO: Re-enable when MSRV is updated to support cargo-audit
-  # audit:
-  #   name: Security audit
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #   - name: Checkout repository
-  #     uses: actions/checkout@v4
-  #   - name: Install Rust toolchain
-  #     uses: dtolnay/rust-toolchain@stable
-  #   - name: Install cargo-audit
-  #     run: cargo install cargo-audit --version 0.20.0
-  #   - name: Run security audit
-  #     run: cargo audit
+  audit:
+    name: Security audit
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+
+    - name: Install cargo-audit
+      run: cargo install cargo-audit
+
+    - name: Run security audit
+      run: cargo audit
 
   msrv:
     name: Minimum Supported Rust Version
@@ -109,7 +110,7 @@ jobs:
     - name: Install Rust toolchain
       uses: dtolnay/rust-toolchain@stable
       with:
-        toolchain: "1.82"  # MSRV - adjust based on your dependencies
+        toolchain: "1.85"  # MSRV - adjust based on your dependencies
 
     - name: Cache dependencies
       uses: Swatinem/rust-cache@v2
