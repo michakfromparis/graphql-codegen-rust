@@ -149,42 +149,24 @@ async fn test_diesel_code_generation_compiles() {
     assert!(output_dir.join("src/entities/user.rs").exists());
     assert!(output_dir.join("migrations").exists());
 
-    // Try to compile the generated code
+    // Verify files were created and contain expected content
     let schema_path = output_dir.join("src/schema.rs");
     let user_entity_path = output_dir.join("src/entities/user.rs");
 
-    // Create a minimal lib.rs that includes the generated files
-    let lib_rs_content = format!(
-        r#"
-#[macro_use]
-extern crate diesel;
+    assert!(schema_path.exists());
+    assert!(user_entity_path.exists());
 
-pub mod schema {{
-    include!("{}");
-}}
-
-pub mod entities {{
-    include!("{}");
-}}
-"#,
-        schema_path.display(),
-        user_entity_path.display()
-    );
-
-    let lib_rs_path = output_dir.join("test_lib.rs");
-    std::fs::write(&lib_rs_path, lib_rs_content).expect("Failed to write test lib.rs");
-
-    // This is a basic smoke test - in a real scenario, you'd use rustc or cargo to compile
-    // For now, we just verify the files contain expected content
-    let schema_content = std::fs::read_to_string(schema_path).expect("Failed to read schema");
+    let schema_content = std::fs::read_to_string(&schema_path).expect("Failed to read schema");
     assert!(schema_content.contains("table!"));
-    // The table name should be "user" not "users" (singular)
     assert!(schema_content.contains("user"));
 
     let user_content =
-        std::fs::read_to_string(user_entity_path).expect("Failed to read user entity");
+        std::fs::read_to_string(&user_entity_path).expect("Failed to read user entity");
     assert!(user_content.contains("#[derive"));
     assert!(user_content.contains("pub struct User"));
+
+    // Actually validate the generated code syntax to ensure it's valid Rust
+    validate_generated_diesel_code(&schema_path, &user_entity_path);
 }
 
 /// Test that generated Sea-ORM code compiles successfully
@@ -275,17 +257,25 @@ async fn test_sea_orm_code_generation_compiles() {
     assert!(output_dir.join("src/entities/product.rs").exists());
     assert!(output_dir.join("migrations").exists());
 
-    // Verify content
-    let mod_content =
-        std::fs::read_to_string(output_dir.join("mod.rs")).expect("Failed to read mod.rs");
+    // Verify files were created and contain expected content
+    let mod_path = output_dir.join("mod.rs");
+    let product_entity_path = output_dir.join("src/entities/product.rs");
+
+    assert!(mod_path.exists());
+    assert!(product_entity_path.exists());
+
+    let mod_content = std::fs::read_to_string(&mod_path).expect("Failed to read mod.rs");
     assert!(mod_content.contains("pub mod product;"));
     assert!(mod_content.contains("pub use product::Entity;"));
 
-    let product_content = std::fs::read_to_string(output_dir.join("src/entities/product.rs"))
-        .expect("Failed to read product entity");
+    let product_content =
+        std::fs::read_to_string(&product_entity_path).expect("Failed to read product entity");
     assert!(product_content.contains("#[derive(Clone, Debug, PartialEq, DeriveEntityModel"));
     assert!(product_content.contains("pub struct Entity;"));
     assert!(product_content.contains("uuid::Uuid")); // Should use UUID for Postgres ID
+
+    // Actually validate the generated code syntax to ensure it's valid Rust
+    validate_generated_sea_orm_code(&mod_path, &product_entity_path);
 }
 
 /// Test both ORM types with different databases
@@ -364,5 +354,39 @@ async fn test_multi_database_support() {
                 );
             }
         }
+    }
+}
+
+/// Parse the generated Diesel code to ensure it's valid Rust syntax
+fn validate_generated_diesel_code(schema_path: &std::path::Path, entity_path: &std::path::Path) {
+    // Read and parse the schema file
+    let schema_content = std::fs::read_to_string(schema_path).expect("Failed to read schema file");
+    match syn::parse_file(&schema_content) {
+        Ok(_) => println!("✓ Schema file parses successfully"),
+        Err(e) => panic!("Schema file failed to parse: {}", e),
+    }
+
+    // Read and parse the entity file
+    let entity_content = std::fs::read_to_string(entity_path).expect("Failed to read entity file");
+    match syn::parse_file(&entity_content) {
+        Ok(_) => println!("✓ Entity file parses successfully"),
+        Err(e) => panic!("Entity file failed to parse: {}", e),
+    }
+}
+
+/// Parse the generated Sea-ORM code to ensure it's valid Rust syntax
+fn validate_generated_sea_orm_code(mod_path: &std::path::Path, entity_path: &std::path::Path) {
+    // Read and parse the mod.rs file
+    let mod_content = std::fs::read_to_string(mod_path).expect("Failed to read mod.rs file");
+    match syn::parse_file(&mod_content) {
+        Ok(_) => println!("✓ Mod file parses successfully"),
+        Err(e) => panic!("Mod file failed to parse: {}", e),
+    }
+
+    // Read and parse the entity file
+    let entity_content = std::fs::read_to_string(entity_path).expect("Failed to read entity file");
+    match syn::parse_file(&entity_content) {
+        Ok(_) => println!("✓ Entity file parses successfully"),
+        Err(e) => panic!("Entity file failed to parse: {}", e),
     }
 }
