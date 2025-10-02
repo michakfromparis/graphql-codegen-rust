@@ -278,6 +278,76 @@ async fn test_sea_orm_code_generation_compiles() {
     validate_generated_sea_orm_code(&mod_path, &product_entity_path);
 }
 
+/// Test SDL schema parsing
+#[test]
+fn test_sdl_parsing() {
+    let parser = graphql_codegen_rust::parser::GraphQLParser::new();
+
+    let sdl_schema = r#"
+        type User {
+            id: ID!
+            username: String!
+            email: String
+            posts: [Post!]!
+        }
+
+        type Post {
+            id: ID!
+            title: String!
+            content: String!
+            authorId: ID!
+            published: Boolean!
+        }
+
+        enum Role {
+            ADMIN
+            USER
+            MODERATOR
+        }
+
+        interface Node {
+            id: ID!
+        }
+
+        union SearchResult = User | Post
+    "#;
+
+    let result = parser.parse_from_sdl(sdl_schema);
+    assert!(result.is_ok(), "SDL parsing should succeed");
+
+    let schema = result.unwrap();
+
+    // Check that we parsed the types
+    assert!(schema.types.contains_key("User"), "Should contain User type");
+    assert!(schema.types.contains_key("Post"), "Should contain Post type");
+    assert!(schema.types.contains_key("Node"), "Should contain Node interface");
+    assert!(schema.types.contains_key("SearchResult"), "Should contain SearchResult union");
+
+    // Check that we parsed the enum
+    assert!(schema.enums.contains_key("Role"), "Should contain Role enum");
+
+    // Check User type fields
+    let user_type = &schema.types["User"];
+    assert_eq!(user_type.name, "User");
+    assert_eq!(user_type.fields.len(), 4);
+
+    // Check that ID field is not nullable
+    let id_field = user_type.fields.iter().find(|f| f.name == "id").unwrap();
+    assert!(!id_field.is_nullable);
+    assert!(matches!(id_field.field_type, graphql_codegen_rust::parser::FieldType::Scalar(ref s) if s == "ID"));
+
+    // Check that email field is nullable
+    let email_field = user_type.fields.iter().find(|f| f.name == "email").unwrap();
+    assert!(email_field.is_nullable);
+
+    // Check posts field is a list and not nullable
+    let posts_field = user_type.fields.iter().find(|f| f.name == "posts").unwrap();
+    assert!(posts_field.is_list);
+    assert!(!posts_field.is_nullable);
+
+    println!("✓ SDL parsing test passed");
+}
+
 /// Test code generation against real GraphQL APIs
 #[tokio::test]
 async fn test_real_graphql_apis() {
