@@ -221,19 +221,31 @@ cargo run --features yaml-codegen-config -- init --url http://localhost:4000/gra
 This project uses GitHub Actions for continuous integration and deployment:
 
 - **CI Pipeline**: Runs on every push/PR with comprehensive testing across multiple platforms (Linux, macOS, Windows) and Rust versions
-- **Code Quality**: Automated formatting checks, clippy linting, and security auditing
+- **Code Quality**: Automated formatting checks and clippy linting
 - **Release Automation**: Automated publishing to crates.io when version tags are pushed
 - **Dependency Management**: Automated dependency updates via Dependabot
+- **Dependency Review**: Automated security scanning via GitHub's dependency review
+- **Security Auditing**: Configured with `cargo-audit` (temporarily disabled due to MSRV constraints)
 - **License Checking**: Configured with `cargo-deny` (temporarily disabled due to MSRV constraints)
 
-### Running License Checks Locally
+### Running Security Checks Locally
 
-To run license and security checks locally, ensure you have Rust 1.88+ and run:
+Both security auditing and license checking currently require Rust 1.88+ due to dependencies using Cargo's `edition2024` feature:
 
 ```bash
+# Requires Rust 1.88+
+cargo install cargo-audit
+cargo audit
+
+# Requires Rust 1.88+
 cargo install cargo-deny
 cargo deny check
 ```
+
+For now, security is handled by:
+- GitHub's built-in dependency review on PRs
+- Regular dependency updates via Dependabot
+- Manual security monitoring
 
 ### Publishing a New Release
 
