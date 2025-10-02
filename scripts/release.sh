@@ -203,7 +203,7 @@ run_validation() {
 commit_changes() {
     local commit_msg="release: bump to v$NEW_VERSION"
     info "Committing changes: $commit_msg"
-    git add Cargo.toml CHANGELOG.md
+    git add Cargo.toml Cargo.lock CHANGELOG.md
     git commit -m "$commit_msg"
 }
 
