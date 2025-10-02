@@ -1,6 +1,6 @@
 use graphql_codegen_rust::{
     CodeGenerator, Config,
-    parser::{ParsedSchema, ParsedType, ParsedField, ParsedEnum, FieldType},
+    parser::{FieldType, ParsedEnum, ParsedField, ParsedSchema, ParsedType},
 };
 use std::collections::HashMap;
 use std::path::PathBuf;
@@ -160,7 +160,8 @@ async fn test_diesel_code_generation_compiles() {
     assert!(schema_content.contains("table!"));
     assert!(schema_content.contains("user"));
 
-    let user_content = std::fs::read_to_string(&user_entity_path).expect("Failed to read user entity");
+    let user_content =
+        std::fs::read_to_string(&user_entity_path).expect("Failed to read user entity");
     assert!(user_content.contains("#[derive"));
     assert!(user_content.contains("pub struct User"));
 
@@ -267,7 +268,8 @@ async fn test_sea_orm_code_generation_compiles() {
     assert!(mod_content.contains("pub mod product;"));
     assert!(mod_content.contains("pub use product::Entity;"));
 
-    let product_content = std::fs::read_to_string(&product_entity_path).expect("Failed to read product entity");
+    let product_content =
+        std::fs::read_to_string(&product_entity_path).expect("Failed to read product entity");
     assert!(product_content.contains("#[derive(Clone, Debug, PartialEq, DeriveEntityModel"));
     assert!(product_content.contains("pub struct Entity;"));
     assert!(product_content.contains("uuid::Uuid")); // Should use UUID for Postgres ID
