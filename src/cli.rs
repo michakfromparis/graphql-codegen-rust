@@ -2,7 +2,7 @@ use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 
 #[derive(Parser)]
-#[command(name = "graphql-rust-codegen")]
+#[command(name = "graphql-codegen-rust")]
 #[command(version = "0.1.0")]
 #[command(about = "Generate Rust ORM code from GraphQL schemas")]
 pub struct Cli {

@@ -6,7 +6,7 @@
 //! # Example
 //!
 //! ```rust,no_run
-//! use graphql_rust_codegen::{CodeGenerator, Config};
+//! use graphql_codegen_rust::{CodeGenerator, Config};
 //! use std::path::PathBuf;
 //!
 //! # async fn example() -> anyhow::Result<()> {

@@ -215,7 +215,7 @@ impl Config {
 
     /// Get the config file path for a given output directory
     pub fn config_path(output_dir: &std::path::Path) -> PathBuf {
-        output_dir.join("graphql-rust-codegen.toml")
+        output_dir.join("graphql-codegen-rust.toml")
     }
 
     /// Auto-detect config file in current directory
@@ -233,13 +233,13 @@ impl Config {
         }
 
         // Try TOML file
-        let toml_path = PathBuf::from("graphql-rust-codegen.toml");
+        let toml_path = PathBuf::from("graphql-codegen-rust.toml");
         if toml_path.exists() {
             return Ok(toml_path);
         }
 
         Err(anyhow::anyhow!(
-            "No config file found. Expected codegen.yml, codegen.yaml, or graphql-rust-codegen.toml"
+            "No config file found. Expected codegen.yml, codegen.yaml, or graphql-codegen-rust.toml"
         ))
     }
 }

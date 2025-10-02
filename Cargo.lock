@@ -859,17 +859,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e629b9b98ef3dd8afe6ca2bd0f89306cec16d43d907889945bc5d6687f2f13c7"
 
 [[package]]
-name = "graphql-parser"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7a818c0d883d7c0801df27be910917750932be279c7bc82dc541b8769425f409"
-dependencies = [
- "combine",
- "thiserror 1.0.69",
-]
-
-[[package]]
-name = "graphql-rust-codegen"
+name = "graphql-codegen-rust"
 version = "0.1.0"
 dependencies = [
  "anyhow",
@@ -891,6 +881,16 @@ dependencies = [
  "tokio",
  "toml",
  "uuid",
+]
+
+[[package]]
+name = "graphql-parser"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7a818c0d883d7c0801df27be910917750932be279c7bc82dc541b8769425f409"
+dependencies = [
+ "combine",
+ "thiserror 1.0.69",
 ]
 
 [[package]]

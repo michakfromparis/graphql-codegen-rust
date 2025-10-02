@@ -2,7 +2,7 @@
 
 ## Supported Versions
 
-We take security seriously. The following versions of `graphql-rust-codegen` are currently being supported with security updates:
+We take security seriously. The following versions of `graphql-codegen-rust` are currently being supported with security updates:
 
 | Version | Supported          |
 | ------- | ------------------ |
