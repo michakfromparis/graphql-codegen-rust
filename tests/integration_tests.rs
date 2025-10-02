@@ -1,4 +1,7 @@
-use graphql_codegen_rust::{CodeGenerator, Config, parser::{ParsedSchema, ParsedType, ParsedField, ParsedEnum, FieldType}};
+use graphql_codegen_rust::{
+    CodeGenerator, Config,
+    parser::{FieldType, ParsedEnum, ParsedField, ParsedSchema, ParsedType},
+};
 use std::collections::HashMap;
 use std::path::PathBuf;
 use tempfile::TempDir;
@@ -94,19 +97,25 @@ async fn test_diesel_code_generation_compiles() {
         },
     ];
 
-    types.insert("User".to_string(), ParsedType {
-        name: "User".to_string(),
-        fields: user_fields,
-        description: Some("A user in the system".to_string()),
-        interfaces: vec![],
-    });
+    types.insert(
+        "User".to_string(),
+        ParsedType {
+            name: "User".to_string(),
+            fields: user_fields,
+            description: Some("A user in the system".to_string()),
+            interfaces: vec![],
+        },
+    );
 
     // Add Role enum
-    enums.insert("Role".to_string(), ParsedEnum {
-        name: "Role".to_string(),
-        values: vec!["ADMIN".to_string(), "USER".to_string()],
-        description: Some("User roles".to_string()),
-    });
+    enums.insert(
+        "Role".to_string(),
+        ParsedEnum {
+            name: "Role".to_string(),
+            values: vec!["ADMIN".to_string(), "USER".to_string()],
+            description: Some("User roles".to_string()),
+        },
+    );
 
     let schema = ParsedSchema {
         types,
@@ -131,7 +140,9 @@ async fn test_diesel_code_generation_compiles() {
     // Generate code using the internal function with pre-parsed schema
     use graphql_codegen_rust::generate_all_code;
     let generator_inner = graphql_codegen_rust::generator::create_generator(&config.orm);
-    generate_all_code(&schema, &config, &*generator_inner).await.expect("Code generation should succeed");
+    generate_all_code(&schema, &config, &*generator_inner)
+        .await
+        .expect("Code generation should succeed");
 
     // Verify files were created
     assert!(output_dir.join("src/schema.rs").exists());
@@ -143,7 +154,8 @@ async fn test_diesel_code_generation_compiles() {
     let user_entity_path = output_dir.join("src/entities/user.rs");
 
     // Create a minimal lib.rs that includes the generated files
-    let lib_rs_content = format!(r#"
+    let lib_rs_content = format!(
+        r#"
 #[macro_use]
 extern crate diesel;
 
@@ -154,7 +166,10 @@ pub mod schema {{
 pub mod entities {{
     include!("{}");
 }}
-"#, schema_path.display(), user_entity_path.display());
+"#,
+        schema_path.display(),
+        user_entity_path.display()
+    );
 
     let lib_rs_path = output_dir.join("test_lib.rs");
     std::fs::write(&lib_rs_path, lib_rs_content).expect("Failed to write test lib.rs");
@@ -166,7 +181,8 @@ pub mod entities {{
     // The table name should be "user" not "users" (singular)
     assert!(schema_content.contains("user"));
 
-    let user_content = std::fs::read_to_string(user_entity_path).expect("Failed to read user entity");
+    let user_content =
+        std::fs::read_to_string(user_entity_path).expect("Failed to read user entity");
     assert!(user_content.contains("#[derive"));
     assert!(user_content.contains("pub struct User"));
 }
@@ -206,19 +222,25 @@ async fn test_sea_orm_code_generation_compiles() {
         },
     ];
 
-    types.insert("Product".to_string(), ParsedType {
-        name: "Product".to_string(),
-        fields: product_fields,
-        description: Some("A product in the catalog".to_string()),
-        interfaces: vec![],
-    });
+    types.insert(
+        "Product".to_string(),
+        ParsedType {
+            name: "Product".to_string(),
+            fields: product_fields,
+            description: Some("A product in the catalog".to_string()),
+            interfaces: vec![],
+        },
+    );
 
     // Add Status enum
-    enums.insert("Status".to_string(), ParsedEnum {
-        name: "Status".to_string(),
-        values: vec!["ACTIVE".to_string(), "INACTIVE".to_string()],
-        description: Some("Product status".to_string()),
-    });
+    enums.insert(
+        "Status".to_string(),
+        ParsedEnum {
+            name: "Status".to_string(),
+            values: vec!["ACTIVE".to_string(), "INACTIVE".to_string()],
+            description: Some("Product status".to_string()),
+        },
+    );
 
     let schema = ParsedSchema {
         types,
@@ -243,7 +265,9 @@ async fn test_sea_orm_code_generation_compiles() {
     // Generate code using the internal function with pre-parsed schema
     use graphql_codegen_rust::generate_all_code;
     let generator_inner = graphql_codegen_rust::generator::create_generator(&config.orm);
-    generate_all_code(&schema, &config, &*generator_inner).await.expect("Code generation should succeed");
+    generate_all_code(&schema, &config, &*generator_inner)
+        .await
+        .expect("Code generation should succeed");
 
     // Verify files were created
     // Sea-ORM generates mod.rs in the output directory root, not in src/
@@ -252,11 +276,13 @@ async fn test_sea_orm_code_generation_compiles() {
     assert!(output_dir.join("migrations").exists());
 
     // Verify content
-    let mod_content = std::fs::read_to_string(output_dir.join("mod.rs")).expect("Failed to read mod.rs");
+    let mod_content =
+        std::fs::read_to_string(output_dir.join("mod.rs")).expect("Failed to read mod.rs");
     assert!(mod_content.contains("pub mod product;"));
     assert!(mod_content.contains("pub use product::Entity;"));
 
-    let product_content = std::fs::read_to_string(output_dir.join("src/entities/product.rs")).expect("Failed to read product entity");
+    let product_content = std::fs::read_to_string(output_dir.join("src/entities/product.rs"))
+        .expect("Failed to read product entity");
     assert!(product_content.contains("#[derive(Clone, Debug, PartialEq, DeriveEntityModel"));
     assert!(product_content.contains("pub struct Entity;"));
     assert!(product_content.contains("uuid::Uuid")); // Should use UUID for Postgres ID
@@ -267,7 +293,10 @@ async fn test_sea_orm_code_generation_compiles() {
 async fn test_multi_database_support() {
     let databases = vec![
         (graphql_codegen_rust::cli::DatabaseType::Sqlite, "i32"),
-        (graphql_codegen_rust::cli::DatabaseType::Postgres, "uuid::Uuid"),
+        (
+            graphql_codegen_rust::cli::DatabaseType::Postgres,
+            "uuid::Uuid",
+        ),
         (graphql_codegen_rust::cli::DatabaseType::Mysql, "u32"),
     ];
 
@@ -276,18 +305,21 @@ async fn test_multi_database_support() {
 
         // Simple schema with just ID field
         let mut types = HashMap::new();
-        types.insert("Test".to_string(), ParsedType {
-            name: "Test".to_string(),
-            fields: vec![ParsedField {
-                name: "id".to_string(),
-                field_type: FieldType::Scalar("ID".to_string()),
+        types.insert(
+            "Test".to_string(),
+            ParsedType {
+                name: "Test".to_string(),
+                fields: vec![ParsedField {
+                    name: "id".to_string(),
+                    field_type: FieldType::Scalar("ID".to_string()),
+                    description: None,
+                    is_nullable: false,
+                    is_list: false,
+                }],
                 description: None,
-                is_nullable: false,
-                is_list: false,
-            }],
-            description: None,
-            interfaces: vec![],
-        });
+                interfaces: vec![],
+            },
+        );
 
         let schema = ParsedSchema {
             types,
@@ -296,7 +328,10 @@ async fn test_multi_database_support() {
         };
 
         // Test both ORMs
-        for orm_type in &[graphql_codegen_rust::cli::OrmType::Diesel, graphql_codegen_rust::cli::OrmType::SeaOrm] {
+        for orm_type in &[
+            graphql_codegen_rust::cli::OrmType::Diesel,
+            graphql_codegen_rust::cli::OrmType::SeaOrm,
+        ] {
             let config = Config {
                 url: "https://example.com/graphql".to_string(),
                 orm: orm_type.clone(),
@@ -313,13 +348,20 @@ async fn test_multi_database_support() {
             // Generate code using the internal function with pre-parsed schema
             use graphql_codegen_rust::generate_all_code;
             let generator_inner = graphql_codegen_rust::generator::create_generator(&config.orm);
-            generate_all_code(&schema, &config, &*generator_inner).await.expect("Code generation should succeed");
+            generate_all_code(&schema, &config, &*generator_inner)
+                .await
+                .expect("Code generation should succeed");
 
             // For Sea-ORM, check that the generated entity uses the correct ID type
             if matches!(orm_type, graphql_codegen_rust::cli::OrmType::SeaOrm) {
                 let entity_path = temp_dir.path().join("src/entities/test.rs");
                 let content = std::fs::read_to_string(entity_path).expect("Failed to read entity");
-                assert!(content.contains(expected_id_type), "Expected {} in Sea-ORM entity for {:?}", expected_id_type, db_type);
+                assert!(
+                    content.contains(expected_id_type),
+                    "Expected {} in Sea-ORM entity for {:?}",
+                    expected_id_type,
+                    db_type
+                );
             }
         }
     }
