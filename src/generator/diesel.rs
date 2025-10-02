@@ -24,6 +24,13 @@ impl Default for DieselGenerator {
 
 impl CodeGenerator for DieselGenerator {
     fn generate_schema(&self, schema: &ParsedSchema, config: &Config) -> anyhow::Result<String> {
+        // Validate schema has types to generate
+        if schema.types.is_empty() && schema.enums.is_empty() {
+            return Err(anyhow::anyhow!(
+                "No GraphQL types or enums found in schema.\n\nThis usually means:\n- The GraphQL schema is empty or invalid\n- Introspection query failed to return type information\n- Only built-in scalar types (String, Int, etc.) were found\n\nEnsure your GraphQL endpoint supports introspection and contains user-defined types."
+            ));
+        }
+
         let mut output = String::new();
 
         // Add imports
@@ -31,13 +38,18 @@ impl CodeGenerator for DieselGenerator {
 
         // Generate table! macros for each type
         for (type_name, parsed_type) in &schema.types {
-            output.push_str(&self.generate_table_macro(type_name, parsed_type, config)?);
+            if !matches!(parsed_type.kind, crate::parser::TypeKind::Object) {
+                continue; // Skip interfaces and unions for Diesel schema
+            }
+            output.push_str(&self.generate_table_macro(type_name, parsed_type, config)
+                .map_err(|e| anyhow::anyhow!("Failed to generate table macro for type '{}': {}", type_name, e))?);
             output.push('\n');
         }
 
         // Generate enum types if needed
         for (enum_name, parsed_enum) in &schema.enums {
-            output.push_str(&self.generate_enum_type(enum_name, parsed_enum)?);
+            output.push_str(&self.generate_enum_type(enum_name, parsed_enum)
+                .map_err(|e| anyhow::anyhow!("Failed to generate enum type '{}': {}", enum_name, e))?);
             output.push('\n');
         }
 
@@ -52,11 +64,20 @@ impl CodeGenerator for DieselGenerator {
         let mut entities = HashMap::new();
 
         // Only generate entities for Object types (not interfaces or unions)
+        let mut object_count = 0;
         for (type_name, parsed_type) in &schema.types {
             if matches!(parsed_type.kind, crate::parser::TypeKind::Object) {
-                let entity_code = self.generate_entity_struct(type_name, parsed_type, config)?;
+                object_count += 1;
+                let entity_code = self.generate_entity_struct(type_name, parsed_type, config)
+                    .map_err(|e| anyhow::anyhow!("Failed to generate entity struct for type '{}': {}", type_name, e))?;
                 entities.insert(format!("{}.rs", to_snake_case(type_name)), entity_code);
             }
+        }
+
+        if object_count == 0 {
+            return Err(anyhow::anyhow!(
+                "No Object types found in GraphQL schema.\n\nDiesel entities can only be generated for Object types (not interfaces or unions).\n\nYour schema may contain:\n- Only interfaces and unions\n- Only built-in scalar types\n- No user-defined object types\n\nEnsure your GraphQL schema contains Object type definitions."
+            ));
         }
 
         Ok(entities)
@@ -70,11 +91,20 @@ impl CodeGenerator for DieselGenerator {
         let mut migrations = Vec::new();
 
         // Only generate migrations for Object types (not interfaces or unions)
+        let mut object_count = 0;
         for (type_name, parsed_type) in &schema.types {
             if matches!(parsed_type.kind, crate::parser::TypeKind::Object) {
-                let migration = self.generate_table_migration(type_name, parsed_type, config)?;
+                object_count += 1;
+                let migration = self.generate_table_migration(type_name, parsed_type, config)
+                    .map_err(|e| anyhow::anyhow!("Failed to generate migration for type '{}': {}", type_name, e))?;
                 migrations.push(migration);
             }
+        }
+
+        if object_count == 0 {
+            return Err(anyhow::anyhow!(
+                "No Object types found in GraphQL schema.\n\nDatabase migrations can only be generated for Object types.\n\nYour schema may contain:\n- Only interfaces and unions\n- Only built-in scalar types\n- No user-defined object types\n\nEnsure your GraphQL schema contains Object type definitions."
+            ));
         }
 
         Ok(migrations)
