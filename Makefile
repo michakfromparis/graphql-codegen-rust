@@ -28,6 +28,7 @@ install-deps:
 	cargo install cargo-audit --version 0.21.2 || echo "cargo-audit already installed"
 	cargo install cargo-deny --version 0.18.3 || echo "cargo-deny already installed"
 	cargo install cargo-llvm-cov || echo "cargo-llvm-cov already installed"
+	cargo install cargo-bump --version 1.1.0 || echo "cargo-bump already installed"
 	@echo "✅ Development dependencies installed"
 
 # Code formatting
@@ -148,6 +149,9 @@ test-all: test
 .PHONY: release-prep
 release-prep: all update audit license-check
 	@echo "✅ Release preparation complete"
+	@echo "Prerequisites:"
+	@echo "- Create 'release' environment in GitHub Settings > Environments"
+	@echo "- Set CRATES_IO_TOKEN secret in the release environment"
 	@echo "Next steps:"
 	@echo "1. Update version in Cargo.toml"
 	@echo "2. Update CHANGELOG.md"
@@ -158,27 +162,21 @@ release-prep: all update audit license-check
 .PHONY: release-check
 release-check: ci
 	@echo "Running release checks..."
-	cargo package --allow-dirty --no-verify
+	cargo package --allow-dirty
 	@echo "✅ Release package validation passed"
 
-# Version management
-.PHONY: version-patch
-version-patch:
-	@echo "Incrementing patch version..."
-	@cargo bump patch --git-tag
-	@echo "✅ Version bumped to $$(cargo pkgid | cut -d# -f2 | cut -d: -f2)"
+# Release management (automated with safety checks)
+.PHONY: release-patch
+release-patch:
+	@./scripts/release.sh patch
 
-.PHONY: version-minor
-version-minor:
-	@echo "Incrementing minor version..."
-	@cargo bump minor --git-tag
-	@echo "✅ Version bumped to $$(cargo pkgid | cut -d# -f2 | cut -d: -f2)"
+.PHONY: release-minor
+release-minor:
+	@./scripts/release.sh minor
 
-.PHONY: version-major
-version-major:
-	@echo "Incrementing major version..."
-	@cargo bump major --git-tag
-	@echo "✅ Version bumped to $$(cargo pkgid | cut -d# -f2 | cut -d: -f2)"
+.PHONY: release-major
+release-major:
+	@./scripts/release.sh major
 
 # Development helpers
 .PHONY: watch
@@ -224,11 +222,11 @@ help:
 	@echo "  make build-release- Release build"
 	@echo ""
 	@echo "Release:"
-	@echo "  make release-prep - Prepare for release (run all checks)"
-	@echo "  make release-check- Validate release package"
-	@echo "  make version-patch- Bump patch version"
-	@echo "  make version-minor- Bump minor version"
-	@echo "  make version-major- Bump major version"
+	@echo "  make release-prep   - Prepare for release (run all checks)"
+	@echo "  make release-check  - Validate release package"
+	@echo "  make release-patch  - Full release cycle for patch version"
+	@echo "  make release-minor  - Full release cycle for minor version"
+	@echo "  make release-major  - Full release cycle for major version"
 	@echo ""
 	@echo "CI/CD:"
 	@echo "  make ci           - Full CI pipeline"

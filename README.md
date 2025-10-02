@@ -12,13 +12,25 @@
 
 A powerful Rust CLI tool that transforms GraphQL schemas into production-ready database code. Built specifically for developers creating offline-first applications with Tauri, it bridges the gap between GraphQL APIs and local data persistence.
 
+## 📦 Installation
+
+### From Crates.io (Recommended)
+
+```bash
+cargo install graphql-codegen-rust
+```
+
+### From Source
+
+```bash
+git clone https://github.com/michakfromparis/graphql-codegen-rust.git
+cd graphql-codegen-rust
+cargo build --release
+```
+
 ## 🚀 Quick Start
 
 ```bash
-# Install from source
-git clone https://github.com/michakfromparis/graphql-codegen-rust.git
-cd graphql-codegen-rust && cargo build --release
-
 # Initialize your project
 graphql-codegen-rust init \
   --url https://api.example.com/graphql \
