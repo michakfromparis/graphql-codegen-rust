@@ -689,7 +689,7 @@ async fn test_fuzz_schema_generation() {
         let mut enums = HashMap::new();
 
         // Random number of types (1-5)
-        let num_types = rng.gen_range(1..=5);
+        let num_types = rng.random_range(1..=5);
         for i in 0..num_types {
             let type_name = format!("Type{}", i);
             let mut fields = vec![ParsedField {
@@ -701,16 +701,16 @@ async fn test_fuzz_schema_generation() {
             }];
 
             // Random number of fields (1-3)
-            let num_fields = rng.gen_range(1..=3);
+            let num_fields = rng.random_range(1..=3);
             for j in 0..num_fields {
                 let field_types = ["String", "Int", "Boolean", "Float"];
-                let random_type = field_types[rng.gen_range(0..field_types.len())];
+                let random_type = field_types[rng.random_range(0..field_types.len())];
 
                 fields.push(ParsedField {
                     name: format!("field{}", j),
                     field_type: FieldType::Scalar(random_type.to_string()),
                     description: None,
-                    is_nullable: rng.gen_bool(0.5), // 50% chance of being nullable
+                    is_nullable: rng.random_bool(0.5), // 50% chance of being nullable
                     is_list: false,
                 });
             }
@@ -729,9 +729,9 @@ async fn test_fuzz_schema_generation() {
         }
 
         // Random enums (0-2)
-        let num_enums = rng.gen_range(0..=2);
+        let num_enums = rng.random_range(0..=2);
         for i in 0..num_enums {
-            let values: Vec<String> = (0..rng.gen_range(2..=5))
+            let values: Vec<String> = (0..rng.random_range(2..=5))
                 .map(|j| format!("VALUE{}", j))
                 .collect();
 
