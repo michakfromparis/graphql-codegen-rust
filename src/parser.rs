@@ -11,12 +11,20 @@ pub struct ParsedSchema {
 }
 
 #[derive(Debug, Clone)]
-#[allow(dead_code)]
+pub enum TypeKind {
+    Object,
+    Interface,
+    Union,
+}
+
+#[derive(Debug, Clone)]
 pub struct ParsedType {
     pub name: String,
+    pub kind: TypeKind,
     pub fields: Vec<ParsedField>,
     pub description: Option<String>,
-    pub interfaces: Vec<String>,
+    pub interfaces: Vec<String>, // For objects and interfaces: implemented interfaces
+    pub union_members: Vec<String>, // For unions: member types
 }
 
 #[derive(Debug, Clone)]
@@ -169,6 +177,16 @@ impl GraphQLParser {
                             types.insert(name.clone(), parsed_type);
                         }
                     }
+                    crate::introspection::TypeKind::Interface => {
+                        if let Some(parsed_type) = self.parse_interface_type(&type_def) {
+                            types.insert(name.clone(), parsed_type);
+                        }
+                    }
+                    crate::introspection::TypeKind::Union => {
+                        if let Some(parsed_type) = self.parse_union_type(&type_def) {
+                            types.insert(name.clone(), parsed_type);
+                        }
+                    }
                     crate::introspection::TypeKind::Enum => {
                         if let Some(parsed_enum) = self.parse_enum_type(&type_def) {
                             enums.insert(name.clone(), parsed_enum);
@@ -178,8 +196,7 @@ impl GraphQLParser {
                         scalars.push(name.clone());
                     }
                     _ => {
-                        // Skip interfaces, unions, input objects for now
-                        // TODO: Add support for these types
+                        // Skip input objects and other types for ORM generation
                     }
                 }
             }
@@ -215,9 +232,59 @@ impl GraphQLParser {
 
         Some(ParsedType {
             name: name.clone(),
+            kind: TypeKind::Object,
             fields,
             description: type_def.description.clone(),
             interfaces,
+            union_members: vec![],
+        })
+    }
+
+    fn parse_interface_type(&self, type_def: &crate::introspection::Type) -> Option<ParsedType> {
+        let name = type_def.name.as_ref()?;
+        let mut fields = Vec::new();
+
+        if let Some(type_fields) = &type_def.fields {
+            for field in type_fields {
+                if let Some(parsed_field) = self.parse_field(field) {
+                    fields.push(parsed_field);
+                }
+            }
+        }
+
+        let interfaces = type_def
+            .interfaces
+            .as_ref()
+            .map(|interfaces| interfaces.iter().filter_map(|i| i.name.clone()).collect())
+            .unwrap_or_default();
+
+        Some(ParsedType {
+            name: name.clone(),
+            kind: TypeKind::Interface,
+            fields,
+            description: type_def.description.clone(),
+            interfaces,
+            union_members: vec![],
+        })
+    }
+
+    fn parse_union_type(&self, type_def: &crate::introspection::Type) -> Option<ParsedType> {
+        let name = type_def.name.as_ref()?;
+
+        // For unions, get the possible types (union members)
+        let union_members = type_def
+            .possible_types
+            .as_ref()
+            .map(|types| types.iter().filter_map(|t| t.name.clone()).collect())
+            .unwrap_or_default();
+
+        Some(ParsedType {
+            name: name.clone(),
+            kind: TypeKind::Union,
+            fields: vec![], // Union types don't have fields
+            description: type_def.description.clone(),
+            interfaces: vec![],
+            union_members,
         })
     }
 
@@ -307,9 +374,11 @@ impl GraphQLParser {
 
         Some(ParsedType {
             name: obj.name.to_string(),
+            kind: TypeKind::Object,
             fields,
             description: obj.description.as_ref().map(|s| s.to_string()),
             interfaces,
+            union_members: vec![],
         })
     }
 
@@ -328,23 +397,27 @@ impl GraphQLParser {
 
         Some(ParsedType {
             name: interface.name.to_string(),
+            kind: TypeKind::Interface,
             fields,
             description: interface.description.as_ref().map(|s| s.to_string()),
             interfaces,
+            union_members: vec![],
         })
     }
 
     fn parse_sdl_union_type<'a>(&self, union_def: &graphql_parser::schema::UnionType<'a, &'a str>) -> Option<ParsedType> {
-        // For unions, we create a type with union members as interfaces
-        let interfaces = union_def.types.iter()
+        // For unions, we store union members separately
+        let union_members = union_def.types.iter()
             .map(|name| name.to_string())
             .collect();
 
         Some(ParsedType {
             name: union_def.name.to_string(),
+            kind: TypeKind::Union,
             fields: vec![], // Union types don't have fields in GraphQL
             description: union_def.description.as_ref().map(|s| s.to_string()),
-            interfaces,
+            interfaces: vec![],
+            union_members,
         })
     }
 
