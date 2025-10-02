@@ -45,10 +45,12 @@ impl Logger {
         println!("✅ {}", message);
     }
 
+    #[allow(dead_code)]
     fn warning(&self, message: &str) {
         eprintln!("⚠️  {}", message);
     }
 
+    #[allow(dead_code)]
     fn error(&self, message: &str) {
         eprintln!("❌ {}", message);
     }
