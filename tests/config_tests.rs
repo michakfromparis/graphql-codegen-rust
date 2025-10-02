@@ -37,8 +37,8 @@ fn test_config_from_yaml_string() {
     let yaml_content = r#"
 schema: https://api.example.com/graphql
 rust_codegen:
-  orm: diesel
-  db: sqlite
+  orm: Diesel
+  db: Sqlite
   output_dir: ./generated
   generate_migrations: true
   generate_entities: true
@@ -155,8 +155,8 @@ schema:
   headers:
     Authorization: "Bearer token123"
 rust_codegen:
-  orm: diesel
-  db: sqlite
+  orm: Diesel
+  db: Sqlite
   output_dir: ./yaml_output
   generate_migrations: true
   generate_entities: false

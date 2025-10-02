@@ -50,6 +50,13 @@ pub struct GraphQLParser {
 }
 
 #[allow(dead_code)]
+impl Default for GraphQLParser {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[allow(dead_code)]
 impl GraphQLParser {
     pub fn new() -> Self {
         Self {
@@ -175,6 +182,7 @@ impl GraphQLParser {
         })
     }
 
+    #[allow(clippy::only_used_in_recursion)]
     fn parse_type_ref(
         &self,
         type_ref: &crate::introspection::TypeRef,

@@ -137,6 +137,13 @@ pub struct Introspector {
 }
 
 #[allow(dead_code)]
+impl Default for Introspector {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+#[allow(dead_code)]
 impl Introspector {
     pub fn new() -> Self {
         Self {
@@ -440,6 +447,7 @@ impl Introspector {
         sdl
     }
 
+    #[allow(clippy::only_used_in_recursion)]
     fn type_ref_to_sdl(&self, type_ref: &TypeRef) -> String {
         let mut result = String::new();
 

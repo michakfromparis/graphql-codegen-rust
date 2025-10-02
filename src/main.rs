@@ -53,7 +53,7 @@ async fn main() -> anyhow::Result<()> {
 
             // Generate code
             let generator = create_generator(&config.orm);
-            generate_all_code(&schema, &config, &generator).await?;
+            generate_all_code(&schema, &config, &*generator).await?;
 
             println!("✅ Initialization complete!");
             println!("Config saved to: {:?}", config_path);
@@ -87,7 +87,7 @@ async fn main() -> anyhow::Result<()> {
 
             // Generate code
             let generator = create_generator(&config.orm);
-            generate_all_code(&schema, &config, &generator).await?;
+            generate_all_code(&schema, &config, &*generator).await?;
 
             println!("✅ Code generation complete!");
         }
@@ -106,7 +106,7 @@ async fn main() -> anyhow::Result<()> {
 
             // Generate code
             let generator = create_generator(&config.orm);
-            generate_all_code(&schema, &config, &generator).await?;
+            generate_all_code(&schema, &config, &*generator).await?;
 
             println!("✅ Code generation complete!");
         }
@@ -118,7 +118,7 @@ async fn main() -> anyhow::Result<()> {
 async fn generate_all_code(
     schema: &parser::ParsedSchema,
     config: &Config,
-    generator: &Box<dyn generator::CodeGenerator>,
+    generator: &dyn generator::CodeGenerator,
 ) -> anyhow::Result<()> {
     // Create output directory structure
     std::fs::create_dir_all(&config.output_dir)?;

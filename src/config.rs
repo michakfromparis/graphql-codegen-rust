@@ -4,8 +4,6 @@ use std::path::PathBuf;
 
 use crate::cli::{DatabaseType, OrmType};
 
-#[cfg(feature = "yaml-codegen-config")]
-use serde_yaml;
 
 /// YAML configuration format compatible with GraphQL Code Generator
 #[cfg(feature = "yaml-codegen-config")]
