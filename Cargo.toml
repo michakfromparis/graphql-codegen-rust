@@ -1,5 +1,5 @@
 [package]
-name = "graphql-diesel-sync"
+name = "graphql-rust-codegen"
 version = "0.1.0"
 edition = "2024"
 
@@ -23,6 +23,7 @@ proc-macro2 = "1.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 toml = "0.8"
+serde_yaml = { version = "0.9", optional = true }
 
 # Error handling
 anyhow = "1.0"
@@ -47,3 +48,4 @@ sea-orm = { version = "0.12", features = ["sqlx-sqlite", "sqlx-postgres", "runti
 default = []
 diesel-support = ["diesel"]
 sea-orm-support = ["sea-orm"]
+yaml-codegen-config = ["serde_yaml"]
