@@ -3,7 +3,7 @@ use std::path::PathBuf;
 
 #[derive(Parser)]
 #[command(name = "graphql-codegen-rust")]
-#[command(version = "0.1.0")]
+#[command(version = env!("CARGO_PKG_VERSION"))]
 #[command(about = "Generate Rust ORM code from GraphQL schemas")]
 pub struct Cli {
     #[command(subcommand)]
