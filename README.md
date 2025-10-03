@@ -31,13 +31,25 @@ cargo build --release
 
 ## 🚀 Quick Start
 
+### For New Projects
+
 ```bash
-# Initialize your project
+# Initialize a new project from scratch
 graphql-codegen-rust init \
   --url https://api.example.com/graphql \
   --orm diesel \
   --db sqlite \
   --output ./src/db
+```
+
+### For Existing Tauri + GraphQL Code Generator Projects
+
+```bash
+# Add Rust database codegen to your existing setup
+graphql-codegen-rust integrate
+
+# Generate your database code
+graphql-codegen-rust generate
 ```
 
 That's it! You'll get:
