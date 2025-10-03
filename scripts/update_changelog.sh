@@ -27,12 +27,16 @@ echo "📝 Generating unreleased changes..."
 TEMP_CONTENT=$(mktemp)
 git cliff --unreleased --strip header > "$TEMP_CONTENT"
 
-# Check if there are any unreleased changes
-if [[ $(wc -l < "$TEMP_CONTENT") -le 1 ]]; then
+# Check if there are any unreleased changes (excluding the header line)
+CONTENT_LINES=$(wc -l < "$TEMP_CONTENT")
+if [[ $CONTENT_LINES -le 1 ]]; then
     echo "✅ No unreleased changes found"
     rm "$TEMP_CONTENT"
     exit 0
 fi
+
+# Add an extra newline at the end for proper formatting
+echo "" >> "$TEMP_CONTENT"
 
 echo "🔄 Updating CHANGELOG.md..."
 
