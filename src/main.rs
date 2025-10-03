@@ -8,8 +8,6 @@ mod introspection;
 mod logger;
 mod parser;
 
-#[cfg(feature = "yaml-codegen-config")]
-use serde_yaml;
 
 use crate::cli::{Cli, Commands};
 use crate::config::Config;
