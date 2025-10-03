@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::cli::DatabaseType;
+use crate::config::DatabaseType;
 use crate::config::Config;
 use crate::generator::{
     CodeGenerator, MigrationFile, diesel_column_type_for_field, rust_type_for_field,

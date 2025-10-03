@@ -1,5 +1,6 @@
 use clap::Parser;
-use graphql_codegen_rust::cli::{Cli, Commands, DatabaseType, OrmType};
+use graphql_codegen_rust::cli::{Cli, Commands, OrmType};
+use graphql_codegen_rust::DatabaseType;
 
 #[test]
 fn test_cli_no_args() {

@@ -39,7 +39,7 @@
 //!
 //! ```rust,no_run
 //! use graphql_codegen_rust::{CodeGenerator, Config};
-//! use graphql_codegen_rust::cli::{OrmType, DatabaseType};
+//! use graphql_codegen_rust::{OrmType, DatabaseType};
 //!
 //! # async fn example() -> anyhow::Result<()> {
 //! // Create configuration programmatically
@@ -139,7 +139,7 @@ pub mod introspection;
 pub mod logger;
 pub mod parser;
 
-pub use cli::DatabaseType;
+pub use config::DatabaseType;
 pub use cli::OrmType;
 pub use config::Config;
 pub use generator::create_generator;
@@ -164,7 +164,7 @@ use fs_err as fs;
 ///
 /// ```rust,no_run
 /// use graphql_codegen_rust::{CodeGenerator, Config};
-/// use graphql_codegen_rust::cli::{OrmType, DatabaseType};
+/// use graphql_codegen_rust::{OrmType, DatabaseType};
 ///
 /// # async fn example() -> anyhow::Result<()> {
 /// let config = Config {
@@ -232,7 +232,7 @@ impl CodeGenerator {
     /// # Example
     /// ```rust,no_run
     /// use graphql_codegen_rust::{CodeGenerator, Config};
-    /// use graphql_codegen_rust::cli::{OrmType, DatabaseType};
+    /// use graphql_codegen_rust::{OrmType, DatabaseType};
     ///
     /// # async fn example() -> anyhow::Result<()> {
     /// let config = Config {

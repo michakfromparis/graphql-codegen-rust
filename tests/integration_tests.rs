@@ -11,7 +11,7 @@ fn test_codegen_creation() {
     let config = Config {
         url: "https://api.example.com/graphql".to_string(),
         orm: graphql_codegen_rust::cli::OrmType::Diesel,
-        db: graphql_codegen_rust::cli::DatabaseType::Sqlite,
+        db: graphql_codegen_rust::DatabaseType::Sqlite,
         output_dir: PathBuf::from("./test_output"),
         headers: HashMap::new(),
         type_mappings: HashMap::new(),
@@ -32,7 +32,7 @@ fn test_config_defaults() {
     let config = Config {
         url: "https://api.example.com/graphql".to_string(),
         orm: graphql_codegen_rust::cli::OrmType::Diesel,
-        db: graphql_codegen_rust::cli::DatabaseType::Sqlite,
+        db: graphql_codegen_rust::DatabaseType::Sqlite,
         output_dir: PathBuf::from("./generated"),
         headers: HashMap::new(),
         type_mappings: HashMap::new(),
@@ -44,7 +44,7 @@ fn test_config_defaults() {
 
     assert_eq!(config.url, "https://api.example.com/graphql");
     assert_eq!(config.orm, graphql_codegen_rust::cli::OrmType::Diesel);
-    assert_eq!(config.db, graphql_codegen_rust::cli::DatabaseType::Sqlite);
+    assert_eq!(config.db, graphql_codegen_rust::DatabaseType::Sqlite);
     assert_eq!(config.output_dir, PathBuf::from("./generated"));
     assert!(config.headers.is_empty());
     assert!(config.generate_migrations);
@@ -129,7 +129,7 @@ async fn test_diesel_code_generation_compiles() {
     let config = Config {
         url: "https://example.com/graphql".to_string(),
         orm: graphql_codegen_rust::cli::OrmType::Diesel,
-        db: graphql_codegen_rust::cli::DatabaseType::Sqlite,
+        db: graphql_codegen_rust::DatabaseType::Sqlite,
         output_dir: output_dir.clone(),
         headers: HashMap::new(),
         type_mappings: HashMap::new(),
@@ -239,7 +239,7 @@ async fn test_sea_orm_code_generation_compiles() {
     let config = Config {
         url: "https://example.com/graphql".to_string(),
         orm: graphql_codegen_rust::cli::OrmType::SeaOrm,
-        db: graphql_codegen_rust::cli::DatabaseType::Postgres,
+        db: graphql_codegen_rust::DatabaseType::Postgres,
         output_dir: output_dir.clone(),
         headers: HashMap::new(),
         type_mappings: HashMap::new(),
@@ -464,10 +464,10 @@ async fn test_real_graphql_apis() {
         ] {
             let db_type = match orm_type {
                 graphql_codegen_rust::cli::OrmType::Diesel => {
-                    graphql_codegen_rust::cli::DatabaseType::Sqlite
+                    graphql_codegen_rust::DatabaseType::Sqlite
                 }
                 graphql_codegen_rust::cli::OrmType::SeaOrm => {
-                    graphql_codegen_rust::cli::DatabaseType::Postgres
+                    graphql_codegen_rust::DatabaseType::Postgres
                 }
             };
 
@@ -528,10 +528,10 @@ async fn test_edge_cases() {
         ] {
             let db_type = match orm_type {
                 graphql_codegen_rust::cli::OrmType::Diesel => {
-                    graphql_codegen_rust::cli::DatabaseType::Sqlite
+                    graphql_codegen_rust::DatabaseType::Sqlite
                 }
                 graphql_codegen_rust::cli::OrmType::SeaOrm => {
-                    graphql_codegen_rust::cli::DatabaseType::Postgres
+                    graphql_codegen_rust::DatabaseType::Postgres
                 }
             };
 
@@ -637,10 +637,10 @@ async fn test_codegen_performance() {
     ] {
         let db_type = match orm_type {
             graphql_codegen_rust::cli::OrmType::Diesel => {
-                graphql_codegen_rust::cli::DatabaseType::Sqlite
+                graphql_codegen_rust::DatabaseType::Sqlite
             }
             graphql_codegen_rust::cli::OrmType::SeaOrm => {
-                graphql_codegen_rust::cli::DatabaseType::Postgres
+                graphql_codegen_rust::DatabaseType::Postgres
             }
         };
 
@@ -764,10 +764,10 @@ async fn test_fuzz_schema_generation() {
         ] {
             let db_type = match orm_type {
                 graphql_codegen_rust::cli::OrmType::Diesel => {
-                    graphql_codegen_rust::cli::DatabaseType::Sqlite
+                    graphql_codegen_rust::DatabaseType::Sqlite
                 }
                 graphql_codegen_rust::cli::OrmType::SeaOrm => {
-                    graphql_codegen_rust::cli::DatabaseType::Postgres
+                    graphql_codegen_rust::DatabaseType::Postgres
                 }
             };
 
@@ -803,12 +803,12 @@ async fn test_fuzz_schema_generation() {
 #[tokio::test]
 async fn test_multi_database_support() {
     let databases = vec![
-        (graphql_codegen_rust::cli::DatabaseType::Sqlite, "i32"),
+        (graphql_codegen_rust::DatabaseType::Sqlite, "i32"),
         (
-            graphql_codegen_rust::cli::DatabaseType::Postgres,
+            graphql_codegen_rust::DatabaseType::Postgres,
             "uuid::Uuid",
         ),
-        (graphql_codegen_rust::cli::DatabaseType::Mysql, "u32"),
+        (graphql_codegen_rust::DatabaseType::Mysql, "u32"),
     ];
 
     for (db_type, expected_id_type) in databases {

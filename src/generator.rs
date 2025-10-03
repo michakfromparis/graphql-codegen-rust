@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
-use crate::cli::{DatabaseType, OrmType};
+use crate::cli::OrmType;
+use crate::config::DatabaseType;
 use crate::config::Config;
 use crate::parser::{ParsedField, ParsedSchema};
 

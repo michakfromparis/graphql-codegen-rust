@@ -24,6 +24,8 @@ impl Integration {
         let codegen_path = Self::find_codegen_config()?;
         logger.info("Found GraphQL Code Generator configuration");
 
+    #[cfg(feature = "yaml-codegen-config")]
+    {
         // Read existing config
         let contents = fs::read_to_string(&codegen_path)?;
         let mut yaml_config: serde_yaml::Value = serde_yaml::from_str(&contents)
@@ -44,6 +46,14 @@ impl Integration {
             fs::write(&codegen_path, updated_yaml)?;
             logger.success("Updated codegen.yml with Rust codegen configuration");
         }
+    }
+
+    #[cfg(not(feature = "yaml-codegen-config"))]
+    {
+        return Err(anyhow::anyhow!(
+            "YAML config support not enabled. Rebuild with: cargo build --features yaml-codegen-config"
+        ));
+    }
 
         // Optionally add scripts to package.json
         if config.add_scripts {
@@ -74,6 +84,7 @@ impl Integration {
     }
 
     /// Add rust_codegen section to YAML config
+    #[cfg(feature = "yaml-codegen-config")]
     fn add_rust_codegen_section(
         yaml_config: &mut serde_yaml::Value,
         output_dir: &Path,

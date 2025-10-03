@@ -1,6 +1,8 @@
 use clap::{Parser, Subcommand};
 use std::path::PathBuf;
 
+use crate::config::DatabaseType;
+
 #[derive(Parser)]
 #[command(name = "graphql-codegen-rust")]
 #[command(version = env!("CARGO_PKG_VERSION"))]
@@ -85,29 +87,6 @@ pub enum OrmType {
     SeaOrm,
 }
 
-/// Supported database backends.
-///
-/// Each database has different capabilities and type mappings:
-/// - **SQLite**: File-based, simple deployment, limited concurrent writes
-/// - **PostgreSQL**: Advanced features, JSON support, excellent concurrency
-/// - **MySQL**: High performance, wide adoption, good for large datasets
-#[derive(
-    Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize, clap::ValueEnum, Default,
-)]
-pub enum DatabaseType {
-    /// SQLite database - file-based, ACID compliant, no server required.
-    /// Uses INTEGER for IDs, TEXT for strings, REAL for floats.
-    #[default]
-    Sqlite,
-
-    /// PostgreSQL database - advanced open-source RDBMS.
-    /// Uses UUID for IDs, native JSON/JSONB, full-text search, advanced indexing.
-    Postgres,
-
-    /// MySQL database - high-performance, widely adopted RDBMS.
-    /// Uses INT/UNSIGNED for IDs, VARCHAR/TEXT for strings, various numeric types.
-    Mysql,
-}
 
 /// Parses a header string in "key:value" format for CLI arguments.
 ///
