@@ -30,6 +30,7 @@ install-deps:
 	cargo install cargo-llvm-cov || echo "cargo-llvm-cov already installed"
 	cargo install cargo-bump --version 1.1.0 || echo "cargo-bump already installed"
 	cargo install cargo-edit || echo "cargo-edit already installed"
+	cargo install git-cliff --version 2.10.1 || echo "git-cliff already installed"
 	@echo "✅ Development dependencies installed"
 
 # Code formatting
@@ -227,14 +228,20 @@ install:
 	@echo "Installing project..."
 	cargo install --path .
 
+# Update changelog with unreleased changes
+changelog:
+	@echo "Updating CHANGELOG.md with unreleased changes..."
+	@./scripts/update_changelog.sh
+
 # Help system
-.PHONY: help
+.PHONY: help changelog
 help:
 	@echo "GraphQL Rust Codegen - Development Workflow"
 	@echo ""
 	@echo "Development:"
 	@echo "  make dev          - Full development workflow (fmt, lint, test, doc)"
 	@echo "  make test         - Run tests"
+	@echo "  make changelog    - Update CHANGELOG.md with unreleased changes"
 	@echo "  make test-watch   - Run tests in watch mode"
 	@echo "  make lint         - Run clippy"
 	@echo "  make fmt          - Format code"
@@ -250,7 +257,7 @@ help:
 	@echo "  make upgrade      - Upgrade to latest compatible versions"
 	@echo "  make upgrade-major- Upgrade including breaking changes (dangerous)"
 	@echo "  make outdated     - Check for outdated dependencies"
-	@echo "  make setup        - Install development dependencies"
+	@echo "  make setup        - Install development dependencies (includes git-cliff)"
 	@echo ""
 	@echo "Building:"
 	@echo "  make build        - Debug build"
