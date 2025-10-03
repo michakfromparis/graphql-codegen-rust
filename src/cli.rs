@@ -49,6 +49,21 @@ pub enum Commands {
         #[arg(short, long)]
         output: Option<PathBuf>,
     },
+
+    /// Integrate with existing Tauri + GraphQL Code Generator project
+    Integrate {
+        /// Output directory for Rust code
+        #[arg(short, long, default_value = "./src-tauri/src")]
+        output: PathBuf,
+
+        /// Skip adding scripts to package.json
+        #[arg(long)]
+        no_scripts: bool,
+
+        /// Force overwrite existing configuration
+        #[arg(long)]
+        force: bool,
+    },
 }
 
 /// Supported ORM frameworks for code generation.
