@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
-use crate::cli::DatabaseType;
 use crate::config::Config;
+use crate::config::DatabaseType;
 use crate::generator::{
     CodeGenerator, MigrationFile, rust_type_for_field, sql_type_for_field, to_snake_case,
 };

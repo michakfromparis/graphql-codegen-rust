@@ -21,7 +21,7 @@ Authorization = "Bearer token123"
 
     assert_eq!(config.url, "https://api.example.com/graphql");
     assert_eq!(config.orm, graphql_codegen_rust::cli::OrmType::Diesel);
-    assert_eq!(config.db, graphql_codegen_rust::cli::DatabaseType::Sqlite);
+    assert_eq!(config.db, graphql_codegen_rust::DatabaseType::Sqlite);
     assert_eq!(config.output_dir, PathBuf::from("./generated"));
     assert_eq!(
         config.headers.get("Authorization"),
@@ -51,7 +51,7 @@ rust_codegen:
 
     assert_eq!(config.url, "https://api.example.com/graphql");
     assert_eq!(config.orm, graphql_codegen_rust::cli::OrmType::Diesel);
-    assert_eq!(config.db, graphql_codegen_rust::cli::DatabaseType::Sqlite);
+    assert_eq!(config.db, graphql_codegen_rust::DatabaseType::Sqlite);
     assert_eq!(config.output_dir, PathBuf::from("./generated"));
     assert_eq!(
         config.headers.get("Authorization"),
@@ -72,7 +72,7 @@ schema: https://api.example.com/graphql
 
     assert_eq!(config.url, "https://api.example.com/graphql");
     assert_eq!(config.orm, graphql_codegen_rust::cli::OrmType::Diesel); // default
-    assert_eq!(config.db, graphql_codegen_rust::cli::DatabaseType::Sqlite); // default
+    assert_eq!(config.db, graphql_codegen_rust::DatabaseType::Sqlite); // default
     assert_eq!(config.output_dir, PathBuf::from("./generated")); // default
     assert!(config.headers.is_empty());
 }
@@ -134,7 +134,7 @@ Authorization = "Bearer token123"
 
     assert_eq!(config.url, "https://api.example.com/graphql");
     assert_eq!(config.orm, graphql_codegen_rust::cli::OrmType::SeaOrm);
-    assert_eq!(config.db, graphql_codegen_rust::cli::DatabaseType::Postgres);
+    assert_eq!(config.db, graphql_codegen_rust::DatabaseType::Postgres);
     assert_eq!(config.output_dir, PathBuf::from("./custom_output"));
     assert_eq!(
         config.headers.get("Authorization"),
@@ -169,7 +169,7 @@ rust_codegen:
 
     assert_eq!(config.url, "https://api.example.com/graphql");
     assert_eq!(config.orm, graphql_codegen_rust::cli::OrmType::Diesel);
-    assert_eq!(config.db, graphql_codegen_rust::cli::DatabaseType::Sqlite);
+    assert_eq!(config.db, graphql_codegen_rust::DatabaseType::Sqlite);
     assert_eq!(config.output_dir, PathBuf::from("./yaml_output"));
     assert_eq!(
         config.headers.get("Authorization"),

@@ -1,4 +1,4 @@
-# GraphQL Rust Codegen
+# GraphQL Codegen Rust
 
 **The missing piece for offline-first applications** 🚀
 
@@ -31,13 +31,25 @@ cargo build --release
 
 ## 🚀 Quick Start
 
+### For New Projects
+
 ```bash
-# Initialize your project
+# Initialize a new project from scratch
 graphql-codegen-rust init \
   --url https://api.example.com/graphql \
   --orm diesel \
   --db sqlite \
   --output ./src/db
+```
+
+### For Existing Tauri + GraphQL Code Generator Projects
+
+```bash
+# Add Rust database codegen to your existing setup
+graphql-codegen-rust integrate
+
+# Generate your database code
+graphql-codegen-rust generate
 ```
 
 That's it! You'll get:
@@ -46,10 +58,81 @@ That's it! You'll get:
 - **Relationship mappings** for foreign keys
 - **Type-safe ORM code** ready for production
 
+## 🔄 GraphQL Code Generator Integration
+
+**🚀 KEY FEATURE: Unified TypeScript + Rust Workflow**
+
+If you're building **Tauri apps with TypeScript**, this tool integrates seamlessly with your existing [GraphQL Code Generator](https://the-guild.dev/graphql/codegen) setup. **No duplicate configuration!**
+
+### Your Complete Tauri GraphQL Workflow
+
+```bash
+# 1. Generate TypeScript types (your existing setup)
+npm run codegen
+
+# 2. Generate Rust database code (NEW!)
+graphql-codegen-rust
+
+# 3. Build your Tauri app
+npm run tauri build
+```
+
+### Single Configuration File
+
+Use the same `codegen.yml` for both frontend and backend:
+
+```yaml
+# codegen.yml - Single source of truth for your entire stack
+schema: https://api.example.com/graphql
+documents: './src/**/*.graphql'
+
+# TypeScript codegen (frontend)
+generates:
+  ./src/gql/:
+    preset: client
+    plugins:
+      - typescript
+      - typescript-operations
+
+# Rust codegen (backend) - NEW!
+rust_codegen:
+  orm: diesel
+  db: sqlite
+  output_dir: ./src-tauri/src/db
+  generate_migrations: true
+  generate_entities: true
+```
+
+### Combined Workflow
+
+```json
+// package.json
+{
+  "scripts": {
+    "codegen": "graphql-codegen --config codegen.yml && graphql-codegen-rust"
+  }
+}
+```
+
+```rust
+// build.rs (optional - auto-regenerate on build)
+fn main() {
+    // Keep database code in sync with schema changes
+    std::process::Command::new("graphql-codegen-rust")
+        .status()
+        .expect("Failed to regenerate database code");
+
+    tauri_build::build()
+}
+```
+
+**One command generates both frontend types AND backend database code!** 🎯
+
 ## 📚 Documentation
 
 - **[Getting Started](docs/getting-started.md)** - Installation and basic usage
 - **[Configuration](docs/configuration.md)** - TOML/YAML setup and options
+- **[Integrations](docs/integrations.md)** - GraphQL Code Generator and other tools
 - **[Examples](docs/examples.md)** - Real-world integration examples
 - **[Comparisons](docs/comparisons.md)** - How it stacks up against similar tools
 - **[Reference](docs/reference.md)** - Type mappings and generated structure
@@ -57,6 +140,7 @@ That's it! You'll get:
 
 ## ✨ Key Features
 
+- **🔄 GraphQL Code Generator Integration**: Unified TypeScript + Rust workflow with single config
 - **🔍 Dual Schema Support**: GraphQL introspection + SDL file parsing
 - **🗄️ Multi-ORM Ready**: Diesel and Sea-ORM support out of the box
 - **💾 Database Agnostic**: SQLite, PostgreSQL, and MySQL
@@ -68,11 +152,11 @@ That's it! You'll get:
 
 ## 🎯 Perfect For
 
-- **Offline-first Tauri applications**
-- **Local data synchronization workflows**
-- **Type-safe database layer generation**
-- **Rapid GraphQL-to-SQL prototyping**
-- **Enterprise data persistence needs**
+- **Tauri developers using GraphQL Code Generator**
+- **Offline-first desktop applications**
+- **TypeScript + Rust full-stack workflows**
+- **Local data synchronization and caching**
+- **Enterprise applications needing type-safe persistence**
 
 ---
 

@@ -4,7 +4,31 @@ use std::path::PathBuf;
 
 use fs_err as fs;
 
-use crate::cli::{DatabaseType, OrmType};
+use crate::cli::OrmType;
+
+/// Supported database backends.
+///
+/// Each database has different capabilities and type mappings:
+/// - **SQLite**: File-based, simple deployment, limited concurrent writes
+/// - **PostgreSQL**: Advanced features, JSON support, excellent concurrency
+/// - **MySQL**: High performance, wide adoption, good for large datasets
+#[derive(
+    Clone, Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize, clap::ValueEnum, Default,
+)]
+pub enum DatabaseType {
+    /// SQLite database - file-based, ACID compliant, no server required.
+    /// Uses INTEGER for IDs, TEXT for strings, REAL for floats.
+    #[default]
+    Sqlite,
+
+    /// PostgreSQL database - advanced open-source RDBMS.
+    /// Uses UUID for IDs, native JSON/JSONB, full-text search, advanced indexing.
+    Postgres,
+
+    /// MySQL database - high-performance, widely adopted RDBMS.
+    /// Uses INT/UNSIGNED for IDs, VARCHAR/TEXT for strings, various numeric types.
+    Mysql,
+}
 
 /// YAML configuration format compatible with GraphQL Code Generator
 #[cfg(feature = "yaml-codegen-config")]
@@ -144,7 +168,7 @@ impl Default for RustCodegenConfig {
 /// ## Example
 ///
 /// ```rust
-/// use graphql_codegen_rust::{Config, cli::{OrmType, DatabaseType}};
+/// use graphql_codegen_rust::{Config, DatabaseType, OrmType};
 /// use std::collections::HashMap;
 ///
 /// let config = Config {
