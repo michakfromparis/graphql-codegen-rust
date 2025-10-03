@@ -387,4 +387,93 @@ rust_codegen:
 
 ---
 
+## Integration with Existing Tauri Projects
+
+**🚀 Perfect for Tauri Developers**
+
+If you already have GraphQL Code Generator set up for your Tauri app's TypeScript frontend, this tool seamlessly adds Rust database code generation without disrupting your workflow.
+
+### Prerequisites
+
+Your project should have:
+- `codegen.yml` or `codegen.yaml` configuration file
+- GraphQL Code Generator installed and working
+- Existing TypeScript types being generated
+
+### Integration Steps
+
+#### 1. Add Rust Codegen to Your Project
+
+```bash
+# In your Tauri project directory
+graphql-codegen-rust integrate
+
+# Options:
+# --no-scripts    Skip adding npm scripts to package.json
+# --force         Overwrite existing rust_codegen config
+# --output DIR    Custom output directory (default: ./src-tauri/src)
+```
+
+#### 2. Generate Your Database Code
+
+```bash
+# Generate Rust database entities and migrations
+graphql-codegen-rust generate
+```
+
+#### 3. Optional: Add Convenient Scripts
+
+The integration can automatically add scripts to your `package.json`:
+
+```json
+{
+  "scripts": {
+    "codegen": "graphql-codegen",           // Your existing script
+    "codegen:rust": "graphql-codegen-rust generate",    // NEW
+    "codegen:all": "npm run codegen && npm run codegen:rust"  // NEW
+  }
+}
+```
+
+### What Gets Modified
+
+**codegen.yml** (enhanced with Rust config):
+```yaml
+# Your existing config stays unchanged
+schema: https://api.example.com/graphql
+generates:
+  ./src/gql/:
+    preset: client
+    plugins:
+      - typescript
+      - typescript-operations
+
+# NEW: Rust codegen section added
+rust_codegen:
+  orm: diesel
+  db: sqlite
+  output_dir: ./src-tauri/src/db
+  generate_migrations: true
+  generate_entities: true
+```
+
+### Your New Workflow
+
+```bash
+# When schema changes:
+pnpm run codegen:all    # Updates both TypeScript + Rust code
+# OR separately:
+pnpm run codegen        # Just TypeScript (your existing workflow)
+pnpm run codegen:rust   # Just Rust database code
+```
+
+### Integration Benefits
+
+- ✅ **Zero disruption** to your existing setup
+- ✅ **Familiar workflow** - just add one more command
+- ✅ **Flexible configuration** - customize Rust generation independently
+- ✅ **Clean separation** - TypeScript and Rust concerns stay separate
+
+---
+
 🚀 **Need help with your integration?** Check the [GitHub issues](https://github.com/michakfromparis/graphql-codegen-rust/issues) or join the discussion!
