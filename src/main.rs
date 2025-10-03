@@ -3,58 +3,22 @@ use clap::Parser;
 mod cli;
 mod config;
 mod generator;
+mod integration;
 mod introspection;
+mod logger;
 mod parser;
 
-use cli::{Cli, Commands};
-use config::Config;
-use generator::create_generator;
-use parser::GraphQLParser;
+#[cfg(feature = "yaml-codegen-config")]
+use serde_yaml;
+
+use crate::cli::{Cli, Commands};
+use crate::config::Config;
+use crate::generator::create_generator;
+use crate::integration::{Integration, IntegrationConfig};
+use crate::logger::Logger;
+use crate::parser::GraphQLParser;
 
 use fs_err as fs;
-
-/// Simple logger that respects verbosity levels
-struct Logger {
-    verbosity: u8,
-}
-
-impl Logger {
-    fn new(verbosity: u8) -> Self {
-        Self { verbosity }
-    }
-
-    fn info(&self, message: &str) {
-        if self.verbosity >= 1 {
-            println!("{}", message);
-        }
-    }
-
-    fn debug(&self, message: &str) {
-        if self.verbosity >= 2 {
-            eprintln!("DEBUG: {}", message);
-        }
-    }
-
-    fn trace(&self, message: &str) {
-        if self.verbosity >= 3 {
-            eprintln!("TRACE: {}", message);
-        }
-    }
-
-    fn success(&self, message: &str) {
-        println!("✅ {}", message);
-    }
-
-    #[allow(dead_code)]
-    fn warning(&self, message: &str) {
-        eprintln!("⚠️  {}", message);
-    }
-
-    #[allow(dead_code)]
-    fn error(&self, message: &str) {
-        eprintln!("❌ {}", message);
-    }
-}
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -103,7 +67,7 @@ async fn main() -> anyhow::Result<()> {
             // Generate code
             logger.info("Generating Rust code...");
             let generator = create_generator(&config.orm);
-            generate_all_code(&schema, &config, &*generator, &logger).await?;
+            crate::generate_all_code(&schema, &config, &*generator, &logger).await?;
 
             logger.success("Initialization complete!");
             logger.info(&format!("Config saved to: {:?}", config_path));
@@ -140,9 +104,22 @@ async fn main() -> anyhow::Result<()> {
             // Generate code
             logger.info("Generating Rust code...");
             let generator = create_generator(&config.orm);
-            generate_all_code(&schema, &config, &*generator, &logger).await?;
+            crate::generate_all_code(&schema, &config, &*generator, &logger).await?;
 
             logger.success("Code generation complete!");
+        }
+        Some(Commands::Integrate {
+            output,
+            no_scripts,
+            force,
+        }) => {
+            let config = IntegrationConfig {
+                output_dir: output,
+                add_scripts: !no_scripts,
+                force,
+            };
+
+            Integration::integrate_with_existing_project(config, &logger).await?;
         }
         None => {
             // Default behavior: generate from auto-detected config
@@ -163,7 +140,7 @@ async fn main() -> anyhow::Result<()> {
             // Generate code
             logger.info("Generating Rust code...");
             let generator = create_generator(&config.orm);
-            generate_all_code(&schema, &config, &*generator, &logger).await?;
+            crate::generate_all_code(&schema, &config, &*generator, &logger).await?;
 
             logger.success("Code generation complete!");
         }
@@ -232,3 +209,5 @@ async fn generate_all_code(
 
     Ok(())
 }
+
+
