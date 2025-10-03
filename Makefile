@@ -29,6 +29,7 @@ install-deps:
 	cargo install cargo-deny --version 0.18.3 || echo "cargo-deny already installed"
 	cargo install cargo-llvm-cov || echo "cargo-llvm-cov already installed"
 	cargo install cargo-bump --version 1.1.0 || echo "cargo-bump already installed"
+	cargo install cargo-edit || echo "cargo-edit already installed"
 	@echo "✅ Development dependencies installed"
 
 # Code formatting
@@ -110,9 +111,41 @@ build-release:
 # Dependencies
 .PHONY: update
 update:
-	@echo "Updating dependencies..."
+	@echo "Updating dependencies within current version ranges..."
 	cargo update
 	@echo "✅ Dependencies updated"
+
+.PHONY: upgrade
+upgrade:
+	@echo "🚀 Upgrading dependencies to latest compatible versions..."
+	@echo "This will modify Cargo.toml and Cargo.lock"
+	@read -p "Continue? (y/N): " confirm && [[ $$confirm =~ ^[Yy]$$ ]] || (echo "Upgrade cancelled." && exit 1)
+	cargo upgrade --compatible
+	cargo update
+	@echo "✅ Dependencies upgraded - running tests..."
+	@if make test; then \
+		echo "✅ All tests passed after upgrade!"; \
+	else \
+		echo "❌ Tests failed after upgrade. You may need to fix compatibility issues."; \
+		echo "To revert: git checkout HEAD -- Cargo.toml Cargo.lock"; \
+		exit 1; \
+	fi
+
+.PHONY: upgrade-major
+upgrade-major:
+	@echo "⚠️  Upgrading dependencies to latest versions (including breaking changes)..."
+	@echo "This may introduce breaking changes!"
+	@read -p "Continue? (y/N): " confirm && [[ $$confirm =~ ^[Yy]$$ ]] || (echo "Upgrade cancelled." && exit 1)
+	cargo upgrade --incompatible
+	cargo update
+	@echo "✅ Dependencies upgraded - running tests..."
+	@if make test; then \
+		echo "✅ All tests passed after major upgrade!"; \
+	else \
+		echo "❌ Tests failed after upgrade. You may need to update code for breaking changes."; \
+		echo "To revert: git checkout HEAD -- Cargo.toml Cargo.lock"; \
+		exit 1; \
+	fi
 
 .PHONY: outdated
 outdated:
@@ -213,7 +246,9 @@ help:
 	@echo "  make coverage     - Generate code coverage report"
 	@echo ""
 	@echo "Dependencies:"
-	@echo "  make update       - Update dependencies"
+	@echo "  make update       - Update within current version ranges"
+	@echo "  make upgrade      - Upgrade to latest compatible versions"
+	@echo "  make upgrade-major- Upgrade including breaking changes (dangerous)"
 	@echo "  make outdated     - Check for outdated dependencies"
 	@echo "  make setup        - Install development dependencies"
 	@echo ""
