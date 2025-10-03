@@ -30,6 +30,7 @@ install-deps:
 	cargo install cargo-llvm-cov || echo "cargo-llvm-cov already installed"
 	cargo install cargo-bump --version 1.1.0 || echo "cargo-bump already installed"
 	cargo install cargo-edit || echo "cargo-edit already installed"
+	cargo install git-cliff --version 2.10.1 || echo "git-cliff already installed"
 	@echo "✅ Development dependencies installed"
 
 # Code formatting
