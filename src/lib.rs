@@ -134,11 +134,16 @@
 pub mod cli;
 pub mod config;
 pub mod generator;
+pub mod integration;
 pub mod introspection;
+pub mod logger;
 pub mod parser;
 
+pub use cli::OrmType;
+pub use cli::DatabaseType;
 pub use config::Config;
 pub use generator::create_generator;
+pub use logger::Logger;
 
 use std::path::Path;
 
@@ -250,8 +255,11 @@ impl CodeGenerator {
             .parse_from_introspection(&config.url, &config.headers)
             .await?;
 
+        // Create a silent logger for the public API
+        let logger = Logger::new(0);
+
         // Generate all code
-        generate_all_code(&schema, config, &*self.inner).await
+        generate_all_code(&schema, config, &*self.inner, &logger).await
     }
 }
 
@@ -304,38 +312,48 @@ pub async fn generate_all_code(
     schema: &parser::ParsedSchema,
     config: &Config,
     generator: &dyn generator::CodeGenerator,
+    logger: &Logger,
 ) -> anyhow::Result<()> {
     // Create output directory structure
+    logger.trace("Creating output directory structure...");
     fs::create_dir_all(&config.output_dir)?;
     let src_dir = config.output_dir.join("src");
     fs::create_dir_all(&src_dir)?;
 
     // Generate schema file
+    logger.trace("Generating schema file...");
     let schema_code = generator.generate_schema(schema, config)?;
     if config.orm == cli::OrmType::Diesel {
         let schema_path = src_dir.join("schema.rs");
         fs::write(schema_path, schema_code)?;
+        logger.info("Generated schema.rs");
     } else if config.orm == cli::OrmType::SeaOrm {
         // Sea-ORM generates a mod.rs file at the root
         let mod_path = config.output_dir.join("mod.rs");
         fs::write(mod_path, schema_code)?;
+        logger.info("Generated mod.rs");
     }
 
     // Generate entity files
+    logger.trace("Generating entity files...");
     let entities = generator.generate_entities(schema, config)?;
     let entities_dir = src_dir.join("entities");
     fs::create_dir_all(&entities_dir)?;
 
+    let entity_count = entities.len();
     for (filename, code) in entities {
         let entity_path = entities_dir.join(filename);
         fs::write(entity_path, code)?;
     }
+    logger.info(&format!("Generated {} entity files", entity_count));
 
     // Generate migrations
+    logger.trace("Generating migration files...");
     let migrations = generator.generate_migrations(schema, config)?;
     let migrations_dir = config.output_dir.join("migrations");
     fs::create_dir_all(&migrations_dir)?;
 
+    let migration_count = migrations.len();
     for migration in migrations {
         let migration_dir = migrations_dir.join(&migration.name);
         fs::create_dir_all(&migration_dir)?;
@@ -346,6 +364,7 @@ pub async fn generate_all_code(
         fs::write(up_path, migration.up_sql)?;
         fs::write(down_path, migration.down_sql)?;
     }
+    logger.info(&format!("Generated {} migrations", migration_count));
 
     Ok(())
 }
