@@ -1,6 +1,6 @@
-use std::path::Path;
 use anyhow::Result;
 use fs_err as fs;
+use std::path::Path;
 
 use crate::logger::Logger;
 
@@ -50,8 +50,8 @@ impl Integration {
             Self::add_scripts_to_package_json(logger)?;
         }
 
-    logger.success("Integration complete!");
-    logger.info("Run 'graphql-codegen-rust generate' to generate your Rust database code.");
+        logger.success("Integration complete!");
+        logger.info("Run 'graphql-codegen-rust generate' to generate your Rust database code.");
 
         Ok(())
     }
@@ -83,7 +83,10 @@ impl Integration {
         let rust_codegen = serde_yaml::Mapping::from_iter([
             ("orm".into(), Value::String("diesel".to_string())),
             ("db".into(), Value::String("sqlite".to_string())),
-            ("output_dir".into(), Value::String(output_dir.join("db").to_string_lossy().to_string())),
+            (
+                "output_dir".into(),
+                Value::String(output_dir.join("db").to_string_lossy().to_string()),
+            ),
             ("generate_migrations".into(), Value::Bool(true)),
             ("generate_entities".into(), Value::Bool(true)),
         ]);
@@ -113,12 +116,18 @@ impl Integration {
 
         // Add our scripts (don't overwrite existing ones)
         if !scripts.contains_key("codegen:rust") {
-            scripts.insert("codegen:rust".to_string(), serde_json::json!("graphql-codegen-rust generate"));
+            scripts.insert(
+                "codegen:rust".to_string(),
+                serde_json::json!("graphql-codegen-rust generate"),
+            );
             logger.info("Added 'codegen:rust' script to package.json");
         }
 
         if !scripts.contains_key("codegen:all") {
-            scripts.insert("codegen:all".to_string(), serde_json::json!("npm run codegen && npm run codegen:rust"));
+            scripts.insert(
+                "codegen:all".to_string(),
+                serde_json::json!("npm run codegen && npm run codegen:rust"),
+            );
             logger.info("Added 'codegen:all' script to package.json");
         }
 
@@ -130,5 +139,4 @@ impl Integration {
 
         Ok(())
     }
-
 }

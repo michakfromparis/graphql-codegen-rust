@@ -209,5 +209,3 @@ async fn generate_all_code(
 
     Ok(())
 }
-
-
