@@ -8,7 +8,6 @@ mod introspection;
 mod logger;
 mod parser;
 
-
 use crate::cli::{Cli, Commands};
 use crate::config::Config;
 use crate::generator::create_generator;

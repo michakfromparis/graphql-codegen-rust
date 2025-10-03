@@ -139,9 +139,9 @@ pub mod introspection;
 pub mod logger;
 pub mod parser;
 
-pub use config::DatabaseType;
 pub use cli::OrmType;
 pub use config::Config;
+pub use config::DatabaseType;
 pub use generator::create_generator;
 pub use logger::Logger;
 

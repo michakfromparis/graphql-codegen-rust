@@ -24,36 +24,36 @@ impl Integration {
         let codegen_path = Self::find_codegen_config()?;
         logger.info("Found GraphQL Code Generator configuration");
 
-    #[cfg(feature = "yaml-codegen-config")]
-    {
-        // Read existing config
-        let contents = fs::read_to_string(&codegen_path)?;
-        let mut yaml_config: serde_yaml::Value = serde_yaml::from_str(&contents)
-            .map_err(|e| anyhow::anyhow!("Failed to parse existing codegen.yml: {}", e))?;
+        #[cfg(feature = "yaml-codegen-config")]
+        {
+            // Read existing config
+            let contents = fs::read_to_string(&codegen_path)?;
+            let mut yaml_config: serde_yaml::Value = serde_yaml::from_str(&contents)
+                .map_err(|e| anyhow::anyhow!("Failed to parse existing codegen.yml: {}", e))?;
 
-        // Check if rust_codegen section already exists
-        if yaml_config.get("rust_codegen").is_some() && !config.force {
-            logger.info("Rust codegen section already exists in codegen.yml");
-            logger.info("Use --force to overwrite existing configuration");
-        } else {
-            // Add rust_codegen section with sensible defaults
-            logger.info("Adding rust_codegen section to codegen.yml");
-            Self::add_rust_codegen_section(&mut yaml_config, &config.output_dir)?;
+            // Check if rust_codegen section already exists
+            if yaml_config.get("rust_codegen").is_some() && !config.force {
+                logger.info("Rust codegen section already exists in codegen.yml");
+                logger.info("Use --force to overwrite existing configuration");
+            } else {
+                // Add rust_codegen section with sensible defaults
+                logger.info("Adding rust_codegen section to codegen.yml");
+                Self::add_rust_codegen_section(&mut yaml_config, &config.output_dir)?;
 
-            // Write back the updated config
-            let updated_yaml = serde_yaml::to_string(&yaml_config)
-                .map_err(|e| anyhow::anyhow!("Failed to serialize updated config: {}", e))?;
-            fs::write(&codegen_path, updated_yaml)?;
-            logger.success("Updated codegen.yml with Rust codegen configuration");
+                // Write back the updated config
+                let updated_yaml = serde_yaml::to_string(&yaml_config)
+                    .map_err(|e| anyhow::anyhow!("Failed to serialize updated config: {}", e))?;
+                fs::write(&codegen_path, updated_yaml)?;
+                logger.success("Updated codegen.yml with Rust codegen configuration");
+            }
         }
-    }
 
-    #[cfg(not(feature = "yaml-codegen-config"))]
-    {
-        return Err(anyhow::anyhow!(
-            "YAML config support not enabled. Rebuild with: cargo build --features yaml-codegen-config"
-        ));
-    }
+        #[cfg(not(feature = "yaml-codegen-config"))]
+        {
+            return Err(anyhow::anyhow!(
+                "YAML config support not enabled. Rebuild with: cargo build --features yaml-codegen-config"
+            ));
+        }
 
         // Optionally add scripts to package.json
         if config.add_scripts {

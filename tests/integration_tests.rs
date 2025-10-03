@@ -551,7 +551,13 @@ async fn test_edge_cases() {
             // Generate code using the internal function
             let generator_inner = graphql_codegen_rust::generator::create_generator(&config.orm);
             let logger = graphql_codegen_rust::Logger::new(0);
-            match graphql_codegen_rust::generate_all_code(&schema, &config, &*generator_inner, &logger).await
+            match graphql_codegen_rust::generate_all_code(
+                &schema,
+                &config,
+                &*generator_inner,
+                &logger,
+            )
+            .await
             {
                 Ok(_) => println!("✓ Edge case '{}' passed for {:?}", case_name, orm_type),
                 Err(e) => panic!("Edge case '{}' failed for {:?}: {}", case_name, orm_type, e),
@@ -787,7 +793,13 @@ async fn test_fuzz_schema_generation() {
             // This should not panic even with random schemas
             let generator_inner = graphql_codegen_rust::generator::create_generator(&config.orm);
             let logger = graphql_codegen_rust::Logger::new(0);
-            match graphql_codegen_rust::generate_all_code(&schema, &config, &*generator_inner, &logger).await
+            match graphql_codegen_rust::generate_all_code(
+                &schema,
+                &config,
+                &*generator_inner,
+                &logger,
+            )
+            .await
             {
                 Ok(_) => println!("✓ Fuzz test case {} passed for {:?}", test_case, orm_type),
                 Err(e) => panic!(
@@ -804,10 +816,7 @@ async fn test_fuzz_schema_generation() {
 async fn test_multi_database_support() {
     let databases = vec![
         (graphql_codegen_rust::DatabaseType::Sqlite, "i32"),
-        (
-            graphql_codegen_rust::DatabaseType::Postgres,
-            "uuid::Uuid",
-        ),
+        (graphql_codegen_rust::DatabaseType::Postgres, "uuid::Uuid"),
         (graphql_codegen_rust::DatabaseType::Mysql, "u32"),
     ];
 
@@ -862,7 +871,7 @@ async fn test_multi_database_support() {
             use graphql_codegen_rust::generate_all_code;
             let generator_inner = graphql_codegen_rust::generator::create_generator(&config.orm);
             let logger = graphql_codegen_rust::Logger::new(0);
-    generate_all_code(&schema, &config, &*generator_inner, &logger)
+            generate_all_code(&schema, &config, &*generator_inner, &logger)
                 .await
                 .expect("Code generation should succeed");
 

@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 
 use crate::cli::OrmType;
-use crate::config::DatabaseType;
 use crate::config::Config;
+use crate::config::DatabaseType;
 use crate::parser::{ParsedField, ParsedSchema};
 
 pub mod diesel;

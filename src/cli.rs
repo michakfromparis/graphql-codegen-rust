@@ -87,7 +87,6 @@ pub enum OrmType {
     SeaOrm,
 }
 
-
 /// Parses a header string in "key:value" format for CLI arguments.
 ///
 /// Used internally by clap to validate and parse header arguments.
