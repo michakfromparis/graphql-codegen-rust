@@ -25,7 +25,7 @@ clap = { version = "4.5", features = ["derive"] }
 
 # HTTP client
 reqwest = { version = "0.12", features = ["json"] }
-tokio = { version = "1.47", features = ["full"] }
+tokio = { version = "1.48", features = ["full"] }
 
 # GraphQL parsing
 graphql-parser = "0.4"
@@ -62,7 +62,7 @@ sea-orm = { version = "1.1", features = ["sqlx-sqlite", "sqlx-postgres", "runtim
 
 [dev-dependencies]
 tempfile = "3.23"
-tokio = { version = "1.47", features = ["full"] }
+tokio = { version = "1.48", features = ["full"] }
 syn = { version = "2.0", features = ["full", "extra-traits"] }
 rand = "0.9"
 
